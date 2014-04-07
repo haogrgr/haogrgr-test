@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.Random;
 
 public class RandomFile {
-    private static final int MIN_LENGTH = 10;
-    private static final int MAX_LENGTH = 15;
-    private static final int STR_NUM = 20000 * 10000;
+    private static final int MIN_LENGTH = 4;
+    private static final int MAX_LENGTH = 5;
+    private static final int STR_NUM = 20000 * 1000;
     private static final String FILEPATH = "C:/tmp/src.txt";
     private static final Random random = new Random(System.currentTimeMillis());
     private static final Random random_char = new Random(System.currentTimeMillis());
@@ -23,9 +23,11 @@ public class RandomFile {
                 bw.flush();
             }
         }
-        for (int i = 0; i < 100; i++) {
-            bw.write("thetop1");
-            bw.newLine();
+        for (int i = 1; i <= 100; i++) {
+            for (int j = 0; j < i; j++) {
+                bw.write("thetop" + i);
+                bw.newLine();
+            }
         }
         bw.close();
         long end = System.currentTimeMillis();

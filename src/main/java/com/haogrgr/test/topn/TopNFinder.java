@@ -17,7 +17,7 @@ public class TopNFinder {
 
     static long start, end;
 
-    static final int HASH_TABLE_SIZE = 512;
+    static final int HASH_TABLE_SIZE = 32;
 
     static final String FILE_PATH = "C:/tmp/src.txt";
     static final String FILE_TEMP_PERFIX = "C:/tmp/temp"+HASH_TABLE_SIZE+"/temp_";
@@ -87,7 +87,7 @@ public class TopNFinder {
                             line = reader.readLine();
                         }
                         reader.close();
-                        TopNContainer<Entry<String, Integer>> tops = TopNContainer.getTopNContainer(topSize);
+                        TopNListContainer<Entry<String, Integer>> tops = TopNListContainer.getTopNContainer(topSize);
                         for (Entry<String, Integer> entry : map.entrySet()) {
                             tops.add(entry);
                         }
@@ -105,9 +105,9 @@ public class TopNFinder {
             future.get();
         }
         
-        TopNContainer<Entry<String, Integer>> tops = TopNContainer.getTopNContainer(topSize);
+        TopNListContainer<Entry<String, Integer>> tops = TopNListContainer.getTopNContainer(topSize);
         for (int i = 0; i < results.length; i++) {
-            TopNContainer<Entry<String, Integer>> object = (TopNContainer<Entry<String, Integer>>) results[i];
+            TopNListContainer<Entry<String, Integer>> object = (TopNListContainer<Entry<String, Integer>>) results[i];
             for (Entry<String, Integer> entry : object) {
                 tops.add(entry);
             }

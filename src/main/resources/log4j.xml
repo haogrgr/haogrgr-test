@@ -3,7 +3,7 @@
 <log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
 
 	<appender name="file" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="file" value="src/main/resources/logs/test.log" />
+		<param name="file" value="logs/haogrgr-test.log" />
 		<layout class="org.apache.log4j.PatternLayout">
 <!-- 			<param name="ConversionPattern" value="[%t][%d{yyy-MM-dd HH:mm:ss.SSS}][%c:%L] %p %x : %m%n" /> -->
 			<param name="ConversionPattern" value="[%d{MM-dd HH:mm:ss.SSS}][%c{1}:%L] %p : %m%n" />
@@ -23,6 +23,7 @@
 	<logger name="com.haogrgr.test.log" additivity="false" >
 		<level value="info" />
 		<appender-ref ref="file"/>
+		<appender-ref ref="stdout"/>
 	</logger>
 	
 	<logger name="org.apache.http">
