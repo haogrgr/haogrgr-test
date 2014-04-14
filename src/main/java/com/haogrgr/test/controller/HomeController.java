@@ -1,11 +1,19 @@
 package com.haogrgr.test.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.haogrgr.test.model.PageInfo;
 
 @Controller
 public class HomeController {
@@ -21,4 +29,24 @@ public class HomeController {
         System.out.println(b);
         return "home";
     }
+    
+    @ResponseBody
+    @RequestMapping(value = "/json")
+    public Object testJson(Integer page, Integer rows){
+        PageInfo<Map<String, String>> pageInfo = new PageInfo<Map<String,String>>(page, rows);
+        pageInfo.setRows(getMapList(pageInfo));
+        return pageInfo;
+    }
+    
+    private List<Map<String, String>> getMapList(PageInfo<?> pageInfo){
+        List<Map<String, String>> rows = new ArrayList<Map<String,String>>(); 
+        for (int i = pageInfo.getBegin(); i < pageInfo.getEnd()*pageInfo.getPageNo(); i++) {
+            HashMap<String, String> map = new HashMap<String, String>();
+            map.put("id", "id" + i);
+            map.put("name", "name" + i);
+            rows.add(map);
+        }
+        return rows;
+    }
+    
 }
