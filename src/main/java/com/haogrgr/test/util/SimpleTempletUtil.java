@@ -5,6 +5,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 基于字符串替换的简单模板
+ * <p>Description: 基于字符串替换的简单模板</p>
+ * <p>Author: desheng.tu</p>
+ * <p>Date: 2014年4月18日</p>
+ */
 public class SimpleTempletUtil {
     
     public static final String DEFAULT_SPLIT = "$$";
@@ -14,9 +20,9 @@ public class SimpleTempletUtil {
         System.out.println(paramNames);
         
         Map<String, String> context = new HashMap<String, String>();
-        context.put("aaa", "value1");
+        context.put("aaaccc", "value1");
         context.put("bbb", "value2");
-        String render = render("dddd$$aaa$$$$bbb$$ccc$$", context );
+        String render = render("dddd$$aaaccc$$$$bbb$$ccc$$aaa$$", context );
         System.out.println(render);
     }
     
@@ -39,7 +45,9 @@ public class SimpleTempletUtil {
      */
     public static String render(String templet, String split, Map<String, String> context) {
         Set<String> paramNames = getParamNames(templet, split);
-
+        
+        //TODO:可以为context添加一些默认的变量,比如当前时间
+        
         for (String name : paramNames) {
             String value = context.get(name);
             value = value == null ? "" : value;
