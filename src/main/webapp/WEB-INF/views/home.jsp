@@ -32,8 +32,8 @@
 </head>
 <body>
 	<table id="table" style="border: 1px; width: 50%; text-align: center;">
-		<thead head>
-			<tr>
+		<thead>
+			<tr head>
 				<th name="id">主键</th>
 				<th name="name">姓名</th>
 				<th name="link" opts="{handler:function(index, data, td){

@@ -22,7 +22,7 @@ public class SimpleTempletUtil {
         Map<String, String> context = new HashMap<String, String>();
         context.put("aaaccc", "value1");
         context.put("bbb", "value2");
-        String render = render("dddd$$aaaccc$$$$bbb$$ccc$$aaa$$", context );
+        String render = render("dddd$$aaaccc$$$$bbb$$ccc$$aaa$$", null );
         System.out.println(render);
     }
     
@@ -44,6 +44,10 @@ public class SimpleTempletUtil {
      * @return 例如  参数 : dddd$$aaa$$$$bbb$$ccc$$, $$, {<aaa, value1>, <bbb, value2>}  结果:ddddvalue1value2ccc$$
      */
     public static String render(String templet, String split, Map<String, String> context) {
+        if(context == null || context.size() == 0){
+            return templet;
+        }
+        
         Set<String> paramNames = getParamNames(templet, split);
         
         //TODO:可以为context添加一些默认的变量,比如当前时间

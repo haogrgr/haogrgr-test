@@ -23,7 +23,7 @@
 		);
 		
 		this.tdOpts = [];
-		$("#" + tableId + " th[name]").each(function(index, element){
+		$("#" + tableId + " tr[head] th[name]").each(function(index, element){
 			var fieldName = $(this).attr("name");
 			var fieldOpts = $(this).attr("opts");
 			fieldOpts = fieldOpts ? eval("fieldOpts = " + fieldOpts) : {};
