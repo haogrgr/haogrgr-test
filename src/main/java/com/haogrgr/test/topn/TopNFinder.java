@@ -13,6 +13,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 题目:
+ * 有一文件,大小约为2.5G
+ * 里面每一行为随机的字符串, 长度5-10之间
+ * 约1亿行,可能重复
+ * 求出现次数最多的前100个字符串
+ */
 public class TopNFinder {
 
     static long start, end;
