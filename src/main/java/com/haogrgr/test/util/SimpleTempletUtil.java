@@ -74,10 +74,12 @@ public class SimpleTempletUtil {
         
         int start = 0, end = 0;
         while (end < templet.length()) {
-            start = templet.indexOf(split, end) + split.length();
+            start = templet.indexOf(split, end);
             if (start == -1) {
                 break;
             }
+            start = start + split.length();
+            
             end = templet.indexOf(split, start);
             if (end == -1) {
                 break;
