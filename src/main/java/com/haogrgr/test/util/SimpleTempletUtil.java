@@ -16,7 +16,7 @@ public class SimpleTempletUtil {
     public static final String DEFAULT_SPLIT = "$$";
     
     public static void main(String[] args) {
-        Set<String> paramNames = getParamNames("dddd$$aaa$$$$bbb$$ccc$$", "$$");
+        Set<String> paramNames = getParamNames("dddd$$aaaccc$$$$bbb$$ccc$$aaa$$", "$$");
         System.out.println(paramNames);
         
         Map<String, String> context = new HashMap<String, String>();
