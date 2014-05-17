@@ -1,5 +1,6 @@
 package com.haogrgr.test.util;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,32 +12,33 @@ import java.util.Map;
  */
 public class MapBuilder<K, V> {
     
-    private Map<K, V> map;
+    private Map<K, V> map = new HashMap<K, V>(8);
     
     public static void main(String[] args) {
-        Map<String, String> build = MapBuilder.make("key1", "value1").put("key2", "value2").build();
-        System.out.println(build);
+        System.out.println(MapBuilder.make("key1", "value1").put("key2", "value2").build());
+        System.out.println(MapBuilder.make("key1", 1).put("key2", 3).build());
+        System.out.println(MapBuilder.makeO("key1", "String").put("key2", 3).put("key3", new BigDecimal(1)).build());
     }
     
-    public MapBuilder(){
-        this(8);
-    }
-    
-    public MapBuilder(int initSize){
-        this.map = new HashMap<K, V>(initSize);
-    }
+    public MapBuilder(){}
     
     public MapBuilder(K key, V value){
-        this(16, key, value);
-    }
-    
-    public MapBuilder(int initSize, K key, V value){
-        this.map = new HashMap<K, V>(initSize);
         map.put(key, value);
     }
     
+    /**
+     * 创建key类型为K, value类型为V的map
+     */
     public static <K, V> MapBuilder<K, V> make(K key, V value ){
         MapBuilder<K, V> builder = new MapBuilder<K, V>(key, value);
+        return builder;
+    }
+    
+    /**
+     * 创建key类型为K, value类型为Object的map
+     */
+    public static <K, V> MapBuilder<K, Object> makeO(K key, Object value ){
+        MapBuilder<K, Object> builder = new MapBuilder<K, Object>(key, value);
         return builder;
     }
     
