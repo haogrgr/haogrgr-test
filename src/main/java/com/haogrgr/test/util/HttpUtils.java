@@ -18,6 +18,7 @@ import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -148,6 +149,22 @@ public class HttpUtils {
         }
 
         return builder.build();
+    }
+    
+    /**
+     * 将参数转换为查询串
+     * @param paramMap 参数map
+     * @param charset 编码类型
+     * @return 例如: key1=value1&key2=value2
+     */
+    public static String toUrlEncodeQueryString(Map<String, String> paramMap, String charset){
+        List <NameValuePair> nvps = fromMap(paramMap);
+        String query = URLEncodedUtils.format(nvps, charset);
+        return query;
+    }
+    
+    public static String toUrlEncodeQueryString(Map<String, String> paramMap){
+        return toUrlEncodeQueryString(paramMap, "UTF-8");
     }
     
     public static List <NameValuePair> fromMap(Map<String, String> paramMap){
