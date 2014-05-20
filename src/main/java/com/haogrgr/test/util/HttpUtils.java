@@ -2,8 +2,10 @@ package com.haogrgr.test.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -152,6 +154,28 @@ public class HttpUtils {
     }
     
     /**
+     * 将查询字符串附加到url后面
+     * @param url url
+     * @param query 查询字符串
+     * @return 拼接后的url
+     */
+    public static String appendQureyString(String url, String query){
+        if(isEmpty(url)){
+            throw new IllegalArgumentException("the argument url is empty");
+        }
+        if(isEmpty(query)){
+            return url;
+        }
+        StringBuilder sb = new StringBuilder(url);
+        if(url.endsWith("?")){
+            sb.append(query.startsWith("?") ? query.substring(1) : query);
+        }else{
+            sb.append("?").append(query.startsWith("?") ? query.substring(1) : query);
+        }
+        return sb.toString();
+    }
+    
+    /**
      * 将参数转换为查询串
      * @param paramMap 参数map
      * @param charset 编码类型
@@ -178,6 +202,21 @@ public class HttpUtils {
         }
         
         return nvps;
+    }
+    
+    public static Map<String, String> parseQueryString(String queryString, String charset){
+        List<NameValuePair> nvps = URLEncodedUtils.parse(queryString, Charset.forName(charset));
+        return toMap(nvps);
+    }
+    
+    public static Map<String, String> toMap(List <NameValuePair> nvps){
+        HashMap<String, String> map = new HashMap<String, String>();
+        
+        for (NameValuePair pair : nvps) {
+            map.put(pair.getName(), pair.getValue());
+        }
+        
+        return map;
     }
     
     public static UrlEncodedFormEntity getFromEntity(Map<String, String> paramMap){
@@ -245,5 +284,9 @@ public class HttpUtils {
             instream.close();
         }
         return trustStore;
+    }
+    
+    private static boolean isEmpty(String str){
+        return str == null || str.trim().length() == 0;
     }
 }
