@@ -131,7 +131,7 @@
 		
 		// Initialize options with default values
 		opts = jQuery.extend({
-			items_per_page:10,
+			items_per_page:12,
 			num_display_entries:11,
 			current_page:0,
 			num_edge_entries:0,

@@ -192,7 +192,7 @@ public class HttpUtils {
     }
     
     public static List <NameValuePair> fromMap(Map<String, String> paramMap){
-        List <NameValuePair> nvps = new ArrayList <NameValuePair>();
+        List <NameValuePair> nvps = new ArrayList <NameValuePair>(paramMap.size() + 1);
         
         for (Map.Entry<String, String> entry : paramMap.entrySet()) {
             String key = entry.getKey();
