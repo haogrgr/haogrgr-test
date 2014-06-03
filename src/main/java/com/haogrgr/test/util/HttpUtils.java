@@ -153,6 +153,14 @@ public class HttpUtils {
         return builder.build();
     }
     
+    public static void close(CloseableHttpClient client){
+        try{
+            client.close();
+        }catch(Exception e){
+            throw new RuntimeException("关闭实例失败", e);
+        }
+    }
+    
     /**
      * 将查询字符串附加到url后面
      * @param url url
@@ -219,15 +227,45 @@ public class HttpUtils {
         return map;
     }
     
+    public static String entityToString(HttpEntity entity){
+        return entityToString(entity, null);
+    }
+    
+    /**
+     * 将响应实体转换为String
+     * @param entity 响应实体
+     * @param charset 字符集
+     */
+    public static String entityToString(HttpEntity entity, String charset){
+        if(entity == null){
+            return null;
+        }
+        try {
+            String content = null;
+            if(charset != null){
+                content = EntityUtils.toString(entity, charset);
+            }else{
+                content = EntityUtils.toString(entity);
+            }
+            return content;
+        } catch (Exception e) {
+            throw new RuntimeException("获取响应正文失败", e);
+        }
+    }
+    
     public static UrlEncodedFormEntity getFromEntity(Map<String, String> paramMap){
         List<NameValuePair> nvps = fromMap(paramMap);
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(nvps, Consts.UTF_8);
         return entity;
     }
     
-    public static StringEntity getStringEntity(String content){
-        StringEntity entity = new StringEntity(content, Consts.UTF_8);
+    public static StringEntity getStringEntity(String content, String charset){
+        StringEntity entity = new StringEntity(content, charset);
         return entity;
+    }
+    
+    public static StringEntity getStringEntity(String content){
+        return getStringEntity(content, Consts.UTF_8.name());
     }
     
     /**
