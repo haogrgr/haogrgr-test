@@ -10,6 +10,7 @@ import java.util.WeakHashMap;
  * 防止当WeakHashMap的key回收后,还是有value的强引用,
  * 需要等到下一次WeakHashMap相关方法调用才会清除key为空的value
  * 抄的com.sum.WeakCache -,-;
+ * 非线程安全
  * @see java.util.WeakHashMap.expungeStaleEntries()
  * <p>Author: desheng.tu</p>
  * <p>Date: 2014年7月3日</p>
