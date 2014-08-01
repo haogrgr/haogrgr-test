@@ -13,33 +13,45 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.haogrgr.test.filter.PostContentHolderInputStream;
 import com.haogrgr.test.model.PageInfo;
 
 @Controller
 public class HomeController {
-    
+
+    @ResponseBody
+    @RequestMapping(value = "/upload/{type}")
+    public String test(@PathVariable String type, @RequestParam(value = "file", required = false) MultipartFile file,
+            HttpServletRequest request, Model model) throws Exception {
+        System.out.println(type);
+        System.out.println(file.getName());
+        return "home";
+    }
+
     @RequestMapping(value = "/")
     public String test(HttpServletRequest request, Model model) throws Exception {
         return "home";
     }
-    
+
     @RequestMapping(value = "/process")
     public String process(String name, HttpServletRequest request, Model model) throws Exception {
         System.err.println(name);
         return "home";
     }
-    
+
     @RequestMapping(value = "/path/{a}/{b}")
     public String testPath(@PathVariable("a") Double a, @PathVariable("b") Double b) {
         System.out.println(a);
         System.out.println(b);
         return "home";
     }
-    
+
     @RequestMapping(value = "/resp")
-    public String testResponseWrite(HttpServletResponse response){
+    public String testResponseWrite(HttpServletResponse response) {
         try {
             response.getWriter().write("success");
             response.flushBuffer();
@@ -48,18 +60,18 @@ public class HomeController {
         }
         return null;
     }
-    
+
     @ResponseBody
     @RequestMapping(value = "/json")
-    public Object testJson(Integer page, Integer rows){
-        PageInfo<Map<String, String>> pageInfo = new PageInfo<Map<String,String>>(page, rows);
+    public Object testJson(Integer page, Integer rows) {
+        PageInfo<Map<String, String>> pageInfo = new PageInfo<Map<String, String>>(page, rows);
         pageInfo.setRows(getMapList(pageInfo));
         return pageInfo;
     }
-    
-    private List<Map<String, String>> getMapList(PageInfo<?> pageInfo){
-        List<Map<String, String>> rows = new ArrayList<Map<String,String>>(); 
-        for (int i = pageInfo.getBegin(); i < pageInfo.getEnd()*pageInfo.getPageNo(); i++) {
+
+    private List<Map<String, String>> getMapList(PageInfo<?> pageInfo) {
+        List<Map<String, String>> rows = new ArrayList<Map<String, String>>();
+        for (int i = pageInfo.getBegin(); i < pageInfo.getEnd() * pageInfo.getPageNo(); i++) {
             HashMap<String, String> map = new HashMap<String, String>();
             map.put("id", "id" + i);
             map.put("name", "name" + i);
@@ -67,5 +79,24 @@ public class HomeController {
         }
         return rows;
     }
-    
+
+    @ResponseBody
+    @RequestMapping("/cash/out/callback")
+    public String callback(HttpServletRequest request) {
+        try {
+            //触发tomcat的解析
+            System.out.println("\n调试:回调参数为:\n" + request.getParameterMap());
+            
+            PostContentHolderInputStream input = (PostContentHolderInputStream) request.getInputStream();
+            
+            String content = new String(input.getAllCacheDate(), "UTF-8");
+            System.out.println("\n调试:回调正文为:\n" + content);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
 }
