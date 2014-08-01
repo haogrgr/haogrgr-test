@@ -18,8 +18,11 @@ public class LogUtils {
     
     private static final Logger logger = LoggerFactory.getLogger(LogUtils.class);
     
-    public static void error(String info, Throwable t){
-        logger.error(info, t);
+    public static void error(String msg, Throwable t){
+        logger.error(msg, t);
     }
     
+    public static void info(String msg){
+        logger.info(msg);
+    }
 }
