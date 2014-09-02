@@ -1,6 +1,5 @@
 package com.haogrgr.test.util;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,9 +14,8 @@ public class MapBuilder<K, V> {
     private Map<K, V> map = new HashMap<K, V>(8);
     
     public static void main(String[] args) {
-        System.out.println(MapBuilder.make("key1", "value1").put("key2", "value2").build());
-        System.out.println(MapBuilder.make("key1", 1).put("key2", 3).build());
-        System.out.println(MapBuilder.makeO("key1", "String").put("key2", 3).put("key3", new BigDecimal(1)).build());
+        System.out.println(MapBuilder.make("a", "a").build("b", "b"));
+        System.out.println(MapBuilder.make("a", "a").put("b", "b").build());
     }
     
     public MapBuilder(){}

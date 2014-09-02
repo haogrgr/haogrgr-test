@@ -3,6 +3,7 @@ package com.haogrgr.test.filter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 
 public class PostContentHolderInputStream extends ServletInputStream {
@@ -29,6 +30,21 @@ public class PostContentHolderInputStream extends ServletInputStream {
             read();
         }
         return cache.toByteArray();
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+
+    @Override
+    public boolean isReady() {
+        return false;
+    }
+
+    @Override
+    public void setReadListener(ReadListener arg0) {
+        
     }
 
 }

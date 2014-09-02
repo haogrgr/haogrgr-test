@@ -163,6 +163,7 @@ public class TopNFinder {
         return index;
     }
 
+    @SuppressWarnings("restriction")
     public static int hash(String str) {
         return sun.misc.Hashing.stringHash32(str);
     }

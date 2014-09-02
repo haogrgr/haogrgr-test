@@ -8,7 +8,7 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.BasicDataSourceFactory;
+import org.apache.commons.dbcp2.BasicDataSourceFactory;
 
 public class DBToolKit {
 
@@ -18,7 +18,6 @@ public class DBToolKit {
 		try {
 			Properties propertie = new Properties();
 			propertie.load(DBToolKit.class.getClassLoader().getResourceAsStream("jdbc.properties"));
-			Class.forName(propertie.getProperty("driverClassName"));
 			datasource = BasicDataSourceFactory.createDataSource(propertie);
 		} catch (Exception e) {
 			throw new ExceptionInInitializerError(e);

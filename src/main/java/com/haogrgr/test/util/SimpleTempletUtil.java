@@ -22,7 +22,10 @@ public class SimpleTempletUtil {
         Map<String, String> context = new HashMap<String, String>();
         context.put("aaaccc", "value1");
         context.put("bbb", "value2");
-        String render = render("dddd$$aaaccc$$$$bbb$$ccc$$aaa$$", null );
+        String render = render("dddd$$aaaccc$$$$bbb$$ccc$$aaa$$", context);
+        
+        render = render("dddd$$aaaccc$$$$bbb$$ccc$$aaa$$", MapBuilder.make("aaaccc", "value1").build("bbb", "value2"));
+        
         System.out.println(render);
     }
     

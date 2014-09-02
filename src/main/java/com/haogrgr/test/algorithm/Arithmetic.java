@@ -9,6 +9,7 @@ package com.haogrgr.test.algorithm;
 public class Arithmetic {
 
     public static void main(String[] args) {
+        //如果len是2的幂 那么  a % len === a & (len - 1) 常用于hashcode计算,如ThreadLocalMap
         System.out.println(add(Integer.MAX_VALUE, 1) == (Integer.MAX_VALUE + 1));
         System.out.println(sub(Integer.MAX_VALUE, Integer.MAX_VALUE) == 0);
         System.out.println(sub(Integer.MIN_VALUE, Integer.MIN_VALUE) == 0);

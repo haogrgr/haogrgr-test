@@ -17,8 +17,7 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpServletRequest wrapper = new HttpServletRequestWrapper(request) {
             @Override
-            @SuppressWarnings("unchecked")
-            public Map<Object, Object> getParameterMap() {
+            public Map<String, String[]> getParameterMap() {
                 return super.getParameterMap();
             }
         };
