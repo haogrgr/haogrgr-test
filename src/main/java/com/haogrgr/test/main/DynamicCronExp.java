@@ -34,7 +34,7 @@ class CronChangeFinder extends Thread {
     ConcurrentTaskScheduler scheduler;
     BizRunnable task;
     ScheduledFuture<?> futrue;
-    boolean stop = false;
+    volatile boolean stop = false;
 
     String dbCron = "0/5 * * * * *";//这个只是为了模拟
     boolean dbFlag = true;//这个只是为了模拟
