@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.haogrgr.test.filter.PostContentHolderInputStream;
-import com.haogrgr.test.model.PageInfo;
+import com.haogrgr.test.util.PageInfo;
 
 @Controller
 public class HomeController {
@@ -78,25 +77,6 @@ public class HomeController {
             rows.add(map);
         }
         return rows;
-    }
-
-    @ResponseBody
-    @RequestMapping("/cash/out/callback")
-    public String callback(HttpServletRequest request) {
-        try {
-            //触发tomcat的解析
-            System.out.println("\n调试:回调参数为:\n" + request.getParameterMap());
-            
-            PostContentHolderInputStream input = (PostContentHolderInputStream) request.getInputStream();
-            
-            String content = new String(input.getAllCacheDate(), "UTF-8");
-            System.out.println("\n调试:回调正文为:\n" + content);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
 }

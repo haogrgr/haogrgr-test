@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd   
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd   
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd   
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd 
+       http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd">
+
+	<!-- 把标记了@Controller注解的类转换为bean -->
+	<context:annotation-config />
+	
+	<!-- 组件扫描 -->
+	<context:component-scan base-package="com.haogrgr.test.controller">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository" />
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service" />
+	</context:component-scan>
+
+	<!-- 默认的注解映射的支持 -->
+	<mvc:annotation-driven>
+		<mvc:message-converters register-defaults="true">
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="objectMapper">
+					<bean class="com.haogrgr.test.util.CustomObjectMapper" />
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+	<!-- 对静态资源文件的访问  -->
+	<mvc:resources mapping="/css/**" location="/css/" cache-period="31556926" />
+	<mvc:resources mapping="/img/**" location="/img/" cache-period="31556926" />
+	<mvc:resources mapping="/js/**" location="/js/" cache-period="31556926" />
+
+	<!-- 对模型视图名称的解析，即在模型视图名称添加前后缀 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="contentType" value="text/html;charset=utf-8" />
+	</bean>
+
+	<!-- 文件上传解析类 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="utf-8" />
+		<property name="maxUploadSize" value="10240000" />
+	</bean>
+
+</beans>  

@@ -4,8 +4,6 @@ import java.beans.PropertyDescriptor;
 
 import org.springframework.beans.BeanUtils;
 
-import com.haogrgr.test.model.PageInfo;
-
 public class TestUtils {
     
     public static void main(String[] args) {
