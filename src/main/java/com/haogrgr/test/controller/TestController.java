@@ -16,7 +16,7 @@ public class TestController {
 
 	@RequestMapping("/index")
 	public String test() {
-		testService.all();
+		testService.testExp();
 		return null;
 	}
 

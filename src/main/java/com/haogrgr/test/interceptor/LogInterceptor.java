@@ -15,10 +15,10 @@ public class LogInterceptor {
 
     private static Logger logger = Logger.getLogger(LogInterceptor.class);
     
-    @Pointcut("execution(* com.haogrgr.test.service..*.*(..))")
-    public void pointcut(){}
+    @Pointcut("execution(* com.haogrgr.test.server..*.*(..))")
+    public void logPointcut(){}
     
-    @AfterThrowing(value = "pointcut()", throwing="t")
+    @AfterThrowing(value="logPointcut()", throwing="t")
     public void doLogging(JoinPoint joinPoint, Throwable t) {
         if(t instanceof BizException){
         	BizException be = (BizException) t;
