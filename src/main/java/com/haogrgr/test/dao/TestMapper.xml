@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.haogrgr.test.dao.TestMapper" >
+    <resultMap id="BaseResultMap" type="com.haogrgr.test.model.TestModel" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="age" property="age" jdbcType="INTEGER" />
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+        id, name, age, modify_time, create_time
+    </sql>
+    
+    <sql id="findByPageSql" >
+        select a.* from test a where 1=1 
+        <if test="paramMap.id != null" >
+            and a.id = #{paramMap.id,jdbcType=INTEGER}
+        </if>
+        <if test="paramMap.name != null" >
+            and a.name = #{paramMap.name,jdbcType=VARCHAR}
+        </if>
+        <if test="paramMap.age != null" >
+            and a.age = #{paramMap.age,jdbcType=INTEGER}
+        </if>
+        order by a.id desc
+    </sql>
+    
+    <select id="findByPage" resultMap="BaseResultMap" parameterType="PageInfo" >
+        select temp.* from (
+        <include refid="findByPageSql" />
+        ) temp limit #{begin}, #{end}
+    </select>
+    
+    <select id="findByPageCount" resultType="java.lang.Integer" parameterType="PageInfo" >
+        select count(1) from (
+        <include refid="findByPageSql" />
+        ) temp 
+    </select>
+    
+    <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from test
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    
+    <select id="load" resultMap="BaseResultMap" >
+        select 
+        <include refid="Base_Column_List" />
+        from test where id in 
+        <foreach collection="ids" item="item" open="(" separator="," close=")" >
+            #{item}
+        </foreach>
+    </select>
+    
+    <select id="all" resultMap="BaseResultMap" >
+        select 
+        <include refid="Base_Column_List" />
+        from test
+    </select>
+    
+    <select id="count" resultType="java.lang.Integer" >
+        select count(1) from test
+    </select>
+    
+    <update id="update" parameterType="com.haogrgr.test.model.TestModel" >
+        update test
+        <set >
+            <if test="name != null" >
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="age != null" >
+                age = #{age,jdbcType=INTEGER},
+            </if>
+            <if test="modifyTime != null" >
+                modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createTime != null" >
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <insert id="insert" parameterType="com.haogrgr.test.model.TestModel" useGeneratedKeys="true" keyProperty="id" >
+        insert into test (name, age, modify_time, 
+            create_time)
+        values (#{name,jdbcType=VARCHAR}, #{age,jdbcType=INTEGER}, #{modifyTime,jdbcType=TIMESTAMP}, 
+            #{createTime,jdbcType=TIMESTAMP})
+    </insert>
+    
+    <insert id="inserts" parameterType="java.util.List" >
+        insert into test (name, age, modify_time, create_time)
+        values
+        <foreach collection="list" item="item" separator="," >
+            (#{item.name,jdbcType=VARCHAR}, #{item.age,jdbcType=INTEGER}, #{item.modifyTime,jdbcType=TIMESTAMP}, #{item.createTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+    
+    <delete id="delete" parameterType="java.lang.Integer" >
+        delete from test
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    
+    <delete id="deletes" >
+        delete from test where id in 
+        <foreach collection="ids" item="item" open="(" separator="," close=")" >
+            #{item}
+        </foreach>
+    </delete>
+</mapper>
