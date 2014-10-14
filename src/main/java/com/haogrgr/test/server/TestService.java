@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.haogrgr.test.dao.BaseMapper;
 import com.haogrgr.test.dao.TestMapper;
-import com.haogrgr.test.exception.BizException;
 import com.haogrgr.test.model.TestModel;
 
 @Service
@@ -16,7 +15,8 @@ public class TestService extends BaseServiceSupport<TestModel> {
 	private TestMapper testMapper;
 	
 	public void testExp(){
-		throw new BizException("test");
+		TestModel obj = new TestModel();;
+		testMapper.insert(obj );
 	}
 	
 	@Override
