@@ -8,7 +8,7 @@ import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
 import com.alibaba.druid.util.JdbcUtils;
 
-public class ModifySqlTest {
+public class DruidSQLParseTest {
 
 	public static void main(String[] args) {
 		SQLSelectStatement statement = (SQLSelectStatement) SQLUtils.parseStatements("select * from dual where 1=1", JdbcUtils.MYSQL).get(0);
