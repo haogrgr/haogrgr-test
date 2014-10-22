@@ -20,7 +20,13 @@ public class HomeController {
 	public String test(HttpServletRequest request, Model model) throws Exception {
 		return "home";
 	}
-
+	
+	@ResponseBody
+	@RequestMapping("/json")
+	public String json(){
+		return "{fun:function(){alert(1);}}";
+	}
+	
 	@ResponseBody
 	@RequestMapping(value = "/upload/{type}")
 	public String test(@PathVariable String type, @RequestParam(value = "file", required = false) MultipartFile file) {

@@ -96,7 +96,7 @@
 		<dependency>
 			<groupId>org.mybatis</groupId>
 			<artifactId>mybatis</artifactId>
-			<version>3.2.7</version>
+			<version>3.2.8</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mybatis</groupId>
@@ -309,6 +309,12 @@
 <!-- 			<artifactId>netty</artifactId> -->
 <!-- 			<version>3.9.4.Final</version> -->
 <!-- 		</dependency> -->
+		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>4.3.6.Final</version>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.agilewiki.jactor</groupId>

@@ -34,6 +34,7 @@
 	<mvc:resources mapping="/img/**" location="/img/" cache-period="31556926" />
 	<mvc:resources mapping="/js/**" location="/js/" cache-period="31556926" />
 	<mvc:resources mapping="/app/**" location="/js/" cache-period="31556926" />
+	<mvc:resources mapping="/oth/**" location="/js/" cache-period="31556926" />
 
 	<!-- 对模型视图名称的解析，即在模型视图名称添加前后缀 -->
 	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
