@@ -58,6 +58,11 @@ private static ApplicationContext context = null;
         return context;
     }
     
+    public static String getTimeStr(){
+    	SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    	return df.format(new Date());
+    }
+    
     /**
      * 修改系统时间
      * @param date 日期 eg: 2011-10-10
