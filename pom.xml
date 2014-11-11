@@ -330,6 +330,13 @@
 			<version>4.6.2.0</version>
 		</dependency>
 		
+		<!-- JMH test -->
+		<dependency>
+		    <groupId>org.openjdk.jmh</groupId>
+		    <artifactId>jmh-core</artifactId>
+		    <version>0.4.2</version>
+	    </dependency>
+		
 	</dependencies>
 
 	<build>
