@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -163,8 +164,7 @@ public class TopNFinder {
         return index;
     }
 
-    @SuppressWarnings("restriction")
     public static int hash(String str) {
-        return sun.misc.Hashing.stringHash32(str);
+        return Objects.hash(str);
     }
 }
