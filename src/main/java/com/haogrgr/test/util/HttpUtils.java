@@ -20,6 +20,7 @@ import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -272,6 +273,16 @@ public class HttpUtils {
     
     public static HttpClientBuilder getClientBuilder() {
         return getClientBuilder(null);
+    }
+    
+    public static String exec(HttpRequestBase request){
+    	try(CloseableHttpClient client = getClient()){
+    		CloseableHttpResponse response = client.execute(request);
+    		String result = entityToString(response.getEntity());
+    		return result;
+    	}catch(Exception e){
+    		throw new RuntimeException(e);
+    	}
     }
     
     /**
