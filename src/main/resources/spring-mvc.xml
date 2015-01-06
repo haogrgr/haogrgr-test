@@ -27,6 +27,9 @@
 				</property>
 			</bean>
 		</mvc:message-converters>
+		<mvc:argument-resolvers>
+			<bean class="com.haogrgr.test.mvc.PrefixMapMethodArgumentResolver"></bean>
+		</mvc:argument-resolvers>
 	</mvc:annotation-driven>
 
 	<!-- 对静态资源文件的访问  -->
