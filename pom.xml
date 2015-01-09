@@ -74,6 +74,11 @@
 			<version>${spring.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+	        <groupId>org.springframework.session</groupId>
+	        <artifactId>spring-session</artifactId>
+	        <version>1.0.0.RELEASE</version>
+	    </dependency>
 		
 		<!-- aspectj -->
 		<dependency>
@@ -119,11 +124,18 @@
 		</dependency>
 		
 		<!-- @Inject -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>javax.inject</groupId> -->
-<!-- 			<artifactId>javax.inject</artifactId> -->
-<!-- 			<version>1</version> -->
-<!-- 		</dependency> -->
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1</version>
+		</dependency>
+		
+		<!-- bean validation api -->
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>1.1.0.Final</version>
+		</dependency>
 		
 		<!-- http client -->
 		<dependency>
@@ -284,24 +296,6 @@
 	    </dependency>
 		
 		<!-- just for fun -->
-		<dependency>
-	        <groupId>com.espertech</groupId>
-	        <artifactId>esper</artifactId>
-	        <version>4.11.0</version>
-        </dependency>
-        
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-all</artifactId>
-			<version>4.0.23.Final</version>
-		</dependency>
-
-<!-- 		<dependency> -->
-<!-- 		<groupId>io.netty</groupId> -->
-<!-- 		<artifactId>netty</artifactId> -->
-<!-- 		<version>3.9.4.Final</version> -->
-<!-- 		</dependency> -->
-		
 		<dependency>
 			<groupId>com.googlecode.xmemcached</groupId>
 			<artifactId>xmemcached</artifactId>
