@@ -26,6 +26,7 @@ public class ReorderTest {
 		}
 
 		Thread t1 = new Thread() {
+			@SuppressWarnings("unused")
 			public void run() {
 				while (true) {
 					//l加上volatile即可解决,利用了volatile获取语义
