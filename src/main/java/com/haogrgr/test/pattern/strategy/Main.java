@@ -1,6 +1,6 @@
-package com.haogrgr.test.func2;
+package com.haogrgr.test.pattern.strategy;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -71,7 +71,7 @@ class Msg {
 
 class MsgProcessStrategy implements Function<Msg, Msg> {
 
-	List<MsgRule> rules = new ArrayList<>();
+	List<MsgRule> rules = new LinkedList<>();
 
 	public MsgProcessStrategy addRule(MsgRule rule) {
 		this.rules.add(rule);
