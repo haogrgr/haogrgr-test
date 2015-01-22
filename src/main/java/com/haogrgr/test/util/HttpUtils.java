@@ -49,6 +49,8 @@ public class HttpUtils {
     public static final String USER_AGENT_FIREFOX = "Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-CN; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15";
     public static final String USER_AGENT_CHROME = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36";
     public static final String USER_AGENT_IE9 = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0)";
+    public static final String USER_AGENT_APPLE6 = "Mozilla/5.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/600.1.3 (KHTML, like Gecko) Version/8.0 Mobile/12A4345d Safari/600.1.4";
+    public static final String USER_AGENT = USER_AGENT_CHROME;
 
     public static final Integer DEFAULT_CONN_REQ_TIMEOUT = 3000;//向链接池请求链接超时时间(毫秒)
     public static final Integer DEFAULT_CONN_TIMEOUT = 3000;//与主机建立链接的超时时间(毫秒)
@@ -293,7 +295,7 @@ public class HttpUtils {
      * @return
      */
     public static HttpClientBuilder getClientBuilder(HttpHost proxy) {
-        HttpClientBuilder builder = HttpClients.custom().setUserAgent(USER_AGENT_CHROME);
+        HttpClientBuilder builder = HttpClients.custom().setUserAgent(USER_AGENT);
         if (proxy != null) {
             builder.setProxy(proxy);
         }
