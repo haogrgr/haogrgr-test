@@ -255,6 +255,13 @@
 			<version>1.4.1.RELEASE</version>
 		</dependency>
 		
+		<!-- web sec api -->
+		<dependency>
+			<groupId>org.owasp.esapi</groupId>
+			<artifactId>esapi</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		
 		<!-- log4j -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -290,10 +297,11 @@
 		
 		<!-- JMH test -->
 		<dependency>
-		    <groupId>org.openjdk.jmh</groupId>
-		    <artifactId>jmh-core</artifactId>
-		    <version>0.4.2</version>
-	    </dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-core</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+
 		
 		<!-- just for fun -->
 		<dependency>
@@ -318,6 +326,12 @@
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
 			<version>10.11.1.1</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.github.pagehelper</groupId>
+		    <artifactId>pagehelper</artifactId>
+		    <version>3.6.0</version>
 		</dependency>
 		
 	</dependencies>
