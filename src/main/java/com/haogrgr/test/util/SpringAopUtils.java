@@ -9,6 +9,12 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.aop.support.DynamicMethodMatcherPointcut;
 
+/**
+ * 使用Spring AOP相关的类来手动建立代理.
+ *
+ * @date 2015年3月31日 下午5:14:51
+ * @author https://github.com/stillotherguy/javaopensource/blob/master/src/main/java/com/rabbit/spring/aop/Main.java
+ */
 public class SpringAopUtils {
 
 	public static void main(String[] args) {

@@ -8,7 +8,7 @@ import org.springframework.beans.PropertyAccessorFactory;
  * Spring的BeanWrapper可以方便的设置属性,对象图,PropertyEditor支持
  *
  * @date 2015年3月31日 下午4:31:52
- * @author desheng.tu
+ * @author https://github.com/stillotherguy/javaopensource/blob/master/src/main/java/com/rabbit/spring/FieldAccessorTest.java
  */
 public class SpringBeanWrapper {
 
