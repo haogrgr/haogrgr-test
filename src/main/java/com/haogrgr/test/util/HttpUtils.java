@@ -40,7 +40,7 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * httpclient工具类 
- * <p>Description: httpclient版本4.3.2</p>
+ * <p>Description: httpclient版本4.4</p>
  * <p>Author: desheng.tu</p>
  * <p>Date: 2014年3月18日</p>
  */
