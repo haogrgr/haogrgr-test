@@ -3,16 +3,22 @@ package com.haogrgr.test.interceptor;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.springframework.core.MethodParameter;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import com.haogrgr.test.exception.BizException;
 import com.haogrgr.test.model.AjaxResult;
 
 @ControllerAdvice("com.haogrgr.test.controller")
-public class ControllerExceptionHandler {
+public class ControllerExceptionHandler implements ResponseBodyAdvice<Object> {
 
 	private static Logger logger = Logger.getLogger(ControllerExceptionHandler.class);
 
@@ -69,6 +75,23 @@ public class ControllerExceptionHandler {
 		} else {
 			mav.setViewName(DEFAULT_ERROR_VIEW);
 		}
+	}
+
+	@Override
+	public boolean supports(MethodParameter returnType,
+			Class<? extends HttpMessageConverter<?>> converterType) {
+		//返回true表示拦截,返回false表示不拦截
+		return true;
+	}
+
+	@Override
+	public Object beforeBodyWrite(Object body, MethodParameter returnType,
+			MediaType selectedContentType,
+			Class<? extends HttpMessageConverter<?>> selectedConverterType,
+			ServerHttpRequest request, ServerHttpResponse response) {
+		//这里可以获取到ResponseBody注解方法的结果.可以在结果被转换为json或其他视图前处理,如日志
+		System.out.println(body);
+		return body;
 	}
 
 }
