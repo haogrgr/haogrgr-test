@@ -29,5 +29,11 @@ public class TestController {
 		System.out.println(pageInfo.getTotal());
 		return pageInfo;
 	}
+	
+	@RequestMapping("/json2")
+	public @ResponseBody Object jsontest2(PageInfo<Test> pageInfo) {
+		System.out.println(pageInfo.getTotal());
+		return pageInfo;
+	}
 
 }
