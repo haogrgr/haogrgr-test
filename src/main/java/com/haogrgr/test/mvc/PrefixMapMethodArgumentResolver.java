@@ -15,6 +15,9 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  * 1.注册PrefixMapMethodArgumentResolver到<mvc:argument-resolvers>中
  * 2.Controller参数类型为MapWapper且打上本注解 eg:(@PrefixMapParam("prop") MapWapper prop)
  * 3.前台表单字段名使用 PrefixMapParam.value() + PrefixMapParam.split() + 参数名  eg: (prop.param1.param2) ==> MapWapper{param1=MapWapper{param2:value}}
+ * 
+ * Spring使用这个方法来设置@PathVariable
+ * org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.handleMatch(RequestMappingInfo, String, HttpServletRequest)
  */
 public class PrefixMapMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
