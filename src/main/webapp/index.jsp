@@ -16,7 +16,11 @@
 
 <script type="text/javascript">
 	$(function() {
-		
+		$.ajax({ type: "POST", url: "${path}/mvc/json", dataType : "json" }).done(function(data) {
+            alert(data);
+        }).fail(function() {
+            alert("支付宝绑定失败,请联系客服！");
+        });
 	});
 </script>
 </head>
