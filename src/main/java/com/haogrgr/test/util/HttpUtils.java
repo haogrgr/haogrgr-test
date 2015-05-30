@@ -49,9 +49,10 @@ public class HttpUtils {
     public static final String USER_AGENT_CHROME = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36";
     public static final String USER_AGENT_IE9 = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0)";
 
-    public static final Integer DEFAULT_CONN_TIMEOUT = 3000;
-    public static final Integer DEFAULT_SO_TIMEOUT = 10000;
-    public static final Integer DEFAULT_CONN_POOL_SIZE = 200;
+    public static final Integer DEFAULT_CONN_REQ_TIMEOUT = 3000;//向链接池请求链接超时时间(毫秒)
+    public static final Integer DEFAULT_CONN_TIMEOUT = 3000;//与主机建立链接的超时时间(毫秒)
+    public static final Integer DEFAULT_SO_TIMEOUT = 5000;//建立链接后,传输等待超时时间(毫秒)
+    public static final Integer DEFAULT_CONN_POOL_SIZE = 200;//链接池大小
 
     public static void main(String[] args) throws Exception {
         CloseableHttpClient client = getSSLClient("haogrgr.keystore", "haogrgr");
@@ -62,6 +63,7 @@ public class HttpUtils {
             String content = EntityUtils.toString(entity);
             System.out.println(content);
         }
+        
         client.close();
     }
 
@@ -281,10 +283,13 @@ public class HttpUtils {
             builder.setProxy(proxy);
         }
 
-        Builder requestBuilder = RequestConfig.custom().setConnectTimeout(DEFAULT_CONN_TIMEOUT);
-        RequestConfig requestConfig = requestBuilder.setSocketTimeout(DEFAULT_SO_TIMEOUT).build();
+        Builder requestConfigBuilder = RequestConfig.custom();
+        requestConfigBuilder.setConnectionRequestTimeout(DEFAULT_CONN_REQ_TIMEOUT);
+        requestConfigBuilder.setConnectTimeout(DEFAULT_CONN_TIMEOUT);
+        requestConfigBuilder.setSocketTimeout(DEFAULT_SO_TIMEOUT);
 
-        builder.setDefaultRequestConfig(requestConfig);
+        builder.setDefaultRequestConfig(requestConfigBuilder.build());
+        
         return builder;
     }
     
