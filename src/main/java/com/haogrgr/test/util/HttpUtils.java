@@ -270,6 +270,10 @@ public class HttpUtils {
         return getStringEntity(content, Consts.UTF_8.name());
     }
     
+    public static HttpClientBuilder getClientBuilder() {
+        return getClientBuilder(null);
+    }
+    
     /**
      * 获取HttpClientBuilder对象,默认UserAgent为chrome
      * 默认ConnectTimeout DEFAULT_CONN_TIMEOUT 1000
