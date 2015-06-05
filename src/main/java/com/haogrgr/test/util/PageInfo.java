@@ -80,7 +80,7 @@ public class PageInfo<T> implements Serializable {
     public PageInfo<T> addParam(String key, Object value){
         if(value != null){
             if(this.paramMap == null){
-                this.paramMap = new HashMap<String, Object>(6);
+                this.paramMap = new HashMap<String, Object>(8);
             }
             this.paramMap.put(key, value);
         }
