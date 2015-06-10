@@ -14,7 +14,7 @@ import com.haogrgr.test.anno.Test;
 /**
  * 使用Spring的类扫描并获取bean定义.
  */
-@Test
+@Test("test")
 public class SpringBeanDefFindUtil {
 
 	public static void main(String[] args) {

@@ -310,6 +310,19 @@
 			<version>2.0.2</version>
 		</dependency>
 		
+		<!-- groovy -->
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy</artifactId>
+			<version>2.4.3</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-sql</artifactId>
+			<version>2.4.3</version>
+		</dependency>
+		
 		<!-- log4j -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
