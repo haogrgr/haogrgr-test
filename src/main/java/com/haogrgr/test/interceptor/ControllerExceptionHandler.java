@@ -10,6 +10,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
@@ -25,7 +26,7 @@ public class ControllerExceptionHandler implements ResponseBodyAdvice<Object> {
 	private static final String DEFAULT_ERROR_VIEW = "common/error";
 
 	@ExceptionHandler(BizException.class)
-	public ModelAndView handlerBizException(HttpServletRequest req, BizException e) {
+	public ModelAndView handlerBizException(HandlerMethod methde, HttpServletRequest req, BizException e) {
 		logger.error("", e);
 
 		ModelAndView mav = new ModelAndView();
