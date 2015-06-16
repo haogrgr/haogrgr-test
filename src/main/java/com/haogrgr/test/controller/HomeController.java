@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.haogrgr.test.util.MapBuilder;
+
 @Controller
 public class HomeController {
 
@@ -25,6 +27,12 @@ public class HomeController {
 	@RequestMapping("/json")
 	public String json(){
 		return "{fun:function(){alert(1);}}";
+	}
+	
+	@ResponseBody
+	@RequestMapping("/json2")
+	public Object json2(){
+		return MapBuilder.make("aaa", "bbb").build("cccc", "ssss");
 	}
 	
 	@ResponseBody

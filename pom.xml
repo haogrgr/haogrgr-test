@@ -404,6 +404,14 @@
 		</dependency>
 		-->
 		
+		<!-- redis client 
+		<dependency>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+		-->
+		
 	</dependencies>
 
 	<build>
