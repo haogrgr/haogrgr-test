@@ -17,7 +17,7 @@ public class SimpleTmpl {
 
 	public static void main(String[] args) {
 		String t1 = "你好 $$name$$, 您的验证码是:$$code$$";
-		String t2 = "你好 #{name}, 您的验证码是:${code}, ${null, null}";
+		String t2 = "你好 #{name}, 您的验证码是:${code}, 感谢支持${symbol, .}";
 		
 		Map<String, Object> param = MapBuilder.makeO("name", "haogrgr").build("code", "1314");
 //		for (int i = 0; i < 100; i++) {
@@ -153,7 +153,7 @@ class Templ {
 				break;
 			case '}':
 				sb.append('}');
-				if(sb.charAt(1) == '{'){
+				if(sb.length() > 1 && sb.charAt(1) == '{'){
 					templ.addExp(Exp.of(sb.toString()));
 					sb.setLength(0);
 				}
