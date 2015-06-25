@@ -395,14 +395,14 @@ public final class ArithUtils {
 	/**
 	 * 四舍五入方法保留指定小数位
 	 */
-	public static BigDecimal halfUp(BigDecimal n, Integer scale) {
+	public static BigDecimal halfUp(BigDecimal n, int scale) {
 		return n.setScale(scale, RoundingMode.HALF_UP);
 	}
 
 	/**
 	 * 四舍五入方法保留指定小数位
 	 */
-	public static BigDecimal halfUp(double n, Integer scale) {
+	public static BigDecimal halfUp(double n, int scale) {
 		return BigDecimal.valueOf(n).setScale(scale, RoundingMode.HALF_UP);
 	}
 
