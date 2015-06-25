@@ -13,11 +13,6 @@ import java.util.Objects;
  */
 public final class ArithUtils {
 
-	public static void main(String[] args) {
-		System.out.println(eq(BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.TEN));
-		System.out.println(halfUp(BigDecimal.valueOf(0.006d), 3));
-	}
-
 	/**
 	 * return a + b + c
 	 */
@@ -409,6 +404,42 @@ public final class ArithUtils {
 	 */
 	public static BigDecimal halfUp(double n, Integer scale) {
 		return BigDecimal.valueOf(n).setScale(scale, RoundingMode.HALF_UP);
+	}
+
+	/**
+	 * 取最大值
+	 */
+	public static BigDecimal max(BigDecimal... eles) {
+		if (eles == null || eles.length == 0) {
+			return null;
+		}
+
+		BigDecimal max = eles[0];
+		for (BigDecimal ele : eles) {
+			Objects.requireNonNull(ele);
+			if (gt(ele, max))
+				max = ele;
+		}
+
+		return max;
+	}
+
+	/**
+	 * 取最小值
+	 */
+	public static BigDecimal min(BigDecimal... eles) {
+		if (eles == null || eles.length == 0) {
+			return null;
+		}
+
+		BigDecimal min = eles[0];
+		for (BigDecimal ele : eles) {
+			Objects.requireNonNull(ele);
+			if (lt(ele, min))
+				min = ele;
+		}
+
+		return min;
 	}
 
 	public static BigDecimal transform(Number number) {
