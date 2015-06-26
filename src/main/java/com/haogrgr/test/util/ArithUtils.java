@@ -61,6 +61,19 @@ public final class ArithUtils {
 	}
 
 	/**
+	 * return a + b + c
+	 */
+	public static BigDecimal add(double a, double b, double... c) {
+		BigDecimal sum = BigDecimal.valueOf(a).add(BigDecimal.valueOf(b));
+		if (c != null && c.length > 0) {
+			for (int i = 0; i < c.length; i++) {
+				sum = sum.add(BigDecimal.valueOf(c[i]));
+			}
+		}
+		return sum;
+	}
+
+	/**
 	 * return a + b + c, 如果元素为空, 则使用0代替
 	 */
 	public static BigDecimal addna(BigDecimal a, BigDecimal b, BigDecimal... c) {
