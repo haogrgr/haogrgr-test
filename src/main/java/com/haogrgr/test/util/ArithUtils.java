@@ -418,7 +418,7 @@ public final class ArithUtils {
 	public static BigDecimal halfUp(double n, int scale) {
 		return BigDecimal.valueOf(n).setScale(scale, RoundingMode.HALF_UP);
 	}
-	
+
 	/**
 	 * 四舍五入方法保留2位小数位,
 	 */
@@ -446,7 +446,7 @@ public final class ArithUtils {
 	public static String halfUpStr(double n, int scale) {
 		return BigDecimal.valueOf(n).setScale(scale, RoundingMode.HALF_UP).toString();
 	}
-	
+
 	/**
 	 * 取最大值
 	 */
