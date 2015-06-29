@@ -418,7 +418,35 @@ public final class ArithUtils {
 	public static BigDecimal halfUp(double n, int scale) {
 		return BigDecimal.valueOf(n).setScale(scale, RoundingMode.HALF_UP);
 	}
+	
+	/**
+	 * 四舍五入方法保留2位小数位,
+	 */
+	public static String halfUpStr(BigDecimal n) {
+		return n.setScale(2, RoundingMode.HALF_UP).toString();
+	}
 
+	/**
+	 * 四舍五入方法保留2位小数位,
+	 */
+	public static String halfUpStr(double n) {
+		return BigDecimal.valueOf(n).setScale(2, RoundingMode.HALF_UP).toString();
+	}
+
+	/**
+	 * 四舍五入方法保留指定小数位
+	 */
+	public static String halfUpStr(BigDecimal n, int scale) {
+		return n.setScale(scale, RoundingMode.HALF_UP).toString();
+	}
+
+	/**
+	 * 四舍五入方法保留指定小数位
+	 */
+	public static String halfUpStr(double n, int scale) {
+		return BigDecimal.valueOf(n).setScale(scale, RoundingMode.HALF_UP).toString();
+	}
+	
 	/**
 	 * 取最大值
 	 */
