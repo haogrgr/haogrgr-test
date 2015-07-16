@@ -484,35 +484,40 @@ public final class ArithUtils {
 		return min;
 	}
 
+	/**
+	 * 将BigInteger, Float, Double, Long, Integer, Short, Byte转换为BigDecimal
+	 */
 	public static BigDecimal of(Number number) {
 		Objects.requireNonNull(number);
 
-		if (BigDecimal.class.isInstance(number)) {
-			return (BigDecimal) number;
-		}
-		if (BigInteger.class.isInstance(number)) {
-			return new BigDecimal((BigInteger) number);
-		}
-		if (Float.class.isInstance(number)) {
-			return BigDecimal.valueOf((Float) number);
-		}
-		if (Double.class.isInstance(number)) {
+		Class<?> clazz = number.getClass();
+		
+		if (clazz == Double.class) {
 			return BigDecimal.valueOf((Double) number);
 		}
-		if (Long.class.isInstance(number)) {
-			return BigDecimal.valueOf((Long) number);
+		if (clazz == BigDecimal.class) {
+			return (BigDecimal) number;
 		}
-		if (Integer.class.isInstance(number)) {
+		if (clazz == Integer.class) {
 			return BigDecimal.valueOf((Integer) number);
 		}
-		if (Short.class.isInstance(number)) {
+		if (clazz == Float.class) {
+			return BigDecimal.valueOf((Float) number);
+		}
+		if (clazz == Long.class) {
+			return BigDecimal.valueOf((Long) number);
+		}
+		if (clazz == BigInteger.class) {
+			return new BigDecimal((BigInteger) number);
+		}
+		if (clazz == Short.class) {
 			return BigDecimal.valueOf((Short) number);
 		}
-		if (Byte.class.isInstance(number)) {
+		if (clazz == Byte.class) {
 			return BigDecimal.valueOf((Byte) number);
 		}
 
-		throw new IllegalArgumentException("不支持的转换类型 : " + number);
+		throw new IllegalArgumentException("不支持的转换类型 : " + number.getClass());
 	}
 
 }
