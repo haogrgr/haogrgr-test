@@ -1,6 +1,7 @@
 package com.haogrgr.test.util;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Objects;
 
@@ -483,9 +484,14 @@ public final class ArithUtils {
 		return min;
 	}
 
-	public static BigDecimal transform(Number number) {
+	public static BigDecimal of(Number number) {
+		Objects.requireNonNull(number);
+
 		if (BigDecimal.class.isInstance(number)) {
 			return (BigDecimal) number;
+		}
+		if (BigInteger.class.isInstance(number)) {
+			return new BigDecimal((BigInteger) number);
 		}
 		if (Float.class.isInstance(number)) {
 			return BigDecimal.valueOf((Float) number);
@@ -505,6 +511,7 @@ public final class ArithUtils {
 		if (Byte.class.isInstance(number)) {
 			return BigDecimal.valueOf((Byte) number);
 		}
+
 		throw new IllegalArgumentException("不支持的转换类型 : " + number);
 	}
 
