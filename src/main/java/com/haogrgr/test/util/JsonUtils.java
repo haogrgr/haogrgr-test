@@ -1,76 +1,85 @@
 package com.haogrgr.test.util;
 
-import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.haogrgr.test.model.TestModel;
 
-@SuppressWarnings("unchecked")
 public class JsonUtils {
 
-    private static ObjectMapper mapper = new ObjectMapper();
+	private static ObjectMapper mapper = new ObjectMapper();
 
-    public static void main(String[] args) {
-        String json = JsonUtils.fromMap(MapBuilder.makeO("aaaa", "bbbb").build("ccccc", "ddddd"));
-        System.out.println(json);
+	public static void main(String[] args) {
+		String json = toJson(MapBuilder.makeO("aaaa", "bbbb").build("ccccc", "ddddd"));
+		System.out.println(json);
 
-        System.out.println(JsonUtils.forMap(json));
-        
-        ArrayList<String> list = new ArrayList<String>();
-        list.add("aaaaa");
-        list.add("bbbbb");
-        
-        json = JsonUtils.fromList(list);
-        System.out.println(json);
-        System.out.println(JsonUtils.forList(json));
-        
-    }
-    
-    public static String toJson(Object o){
-    	try {
-			return mapper.writeValueAsString(o);
+		Map<String, String> map = toMap(json, String.class);
+		System.out.println(map);
+
+		//==============
+
+		json = toJson(Lists.newArrayList(1, 2, 3, 4, 5));
+		System.out.println(json);
+
+		List<Integer> list = toList(json, Integer.class);
+		System.out.println(list);
+
+		//==============
+
+		json = toJson(new TestModel().setAge(1).setName("haogrgr"));
+		System.out.println(json);
+
+		TestModel bean = toBean(json, TestModel.class);
+		System.out.println(bean);
+	}
+
+	/**
+	 * 对象转换为json
+	 * @param obj 要转换为json的对象
+	 */
+	public static String toJson(Object obj) {
+		try {
+			return mapper.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
-    	return null;
-    }
-    
-    public static Map<String, Object> forMap(String json) {
-        try {
-            return mapper.readValue(json, Map.class);
-        } catch (Exception e) {
-            throw new RuntimeException("转换为map失败!");
-        }
-    }
+	}
 
-    public static List<Object> forList(String json) {
-        try {
-            return mapper.readValue(json, List.class);
-        } catch (Exception e) {
-            throw new RuntimeException("转换为list失败!");
-        }
-    }
+	/**
+	 * json转换为map, 返回的map中key为String类型, value为vclass类型
+	 */
+	public static <V> Map<String, V> toMap(String json, Class<V> vclass) {
+		try {
+			return mapper.readValue(json, new TypeReference<Map<String, V>>() {});
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    public static String fromMap(Map<?, ?> map) {
-        StringWriter sw = new StringWriter();
-        try {
-            mapper.writeValue(sw, map);
-        } catch (Exception e) {
-            throw new RuntimeException("转换为Json失败!");
-        }
-        return sw.toString();
-    }
-    
-    public static String fromList(List<?> list) {
-        StringWriter sw = new StringWriter();
-        try {
-            mapper.writeValue(sw, list);
-        } catch (Exception e) {
-            throw new RuntimeException("转换为Json失败!");
-        }
-        return sw.toString();
-    }
+	/**
+	 * json转换为list, 返回的list类型为clazz
+	 */
+	public static <T> List<T> toList(String json, Class<T> clazz) {
+		try {
+			return mapper.readValue(json, new TypeReference<List<T>>() {});
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * json转换为指定类型的bean
+	 */
+	public static <T> T toBean(String json, Class<T> clazz) {
+		try {
+			return mapper.readValue(json, clazz);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 }
