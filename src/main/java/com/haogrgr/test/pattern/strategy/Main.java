@@ -8,16 +8,29 @@ import java.util.function.Predicate;
 public class Main {
 
 	public static void main(String[] args) {
+		MsgProcessStrategy strategy = new MsgProcessStrategy();
+
+		//所有msg的内容前加上消息类型 如:  hello! --> info : hello!
+		strategy.addRule(MsgRuleBuilder.when(msg -> true)
+				.goon()
+				.then(msg -> msg.setContent(msg.getType() + " : " + msg.getContent())));
+
+		//warn和error类型的msg加上html红色标签
+		strategy.addRule(MsgRuleBuilder.when(msg -> Msg.WARN.equals(msg.getType()))
+				.or(msg -> Msg.ERROR.equals(msg.getType()))
+				.goon()
+				.then(msg -> msg.setContent("<font color=\"FF0000\">" + msg.getContent() + "</font>")));
 
 		Msg before = new Msg(1, Msg.WARN, "hello!");
 		System.out.println(before);
-		Msg after = MsgProcessStrategyFactory.get().apply(before);
+		Msg after = strategy.apply(before);
 		System.out.println(after);
-		
+
 		before = new Msg(1, Msg.INFO, "hello!");
 		System.out.println(before);
-		after = MsgProcessStrategyFactory.get().apply(before);
+		after = strategy.apply(before);
 		System.out.println(after);
+
 	}
 
 }
@@ -155,18 +168,16 @@ class MsgProcessStrategyFactory {
 
 	public static MsgProcessStrategy get() {
 		MsgProcessStrategy strategy = new MsgProcessStrategy();
-		
+
 		//所有msg的内容前加上消息类型 如:  hello! --> info : hello!
-		strategy.addRule(MsgRuleBuilder.when(msg -> true)
-				.goon()
-				.then(msg -> msg.setContent(msg.getType()+" : " + msg.getContent())));
-		
+		strategy.addRule(MsgRuleBuilder.when(msg -> true).goon()
+				.then(msg -> msg.setContent(msg.getType() + " : " + msg.getContent())));
+
 		//warn和error类型的msg加上html红色标签
 		strategy.addRule(MsgRuleBuilder.when(msg -> Msg.WARN.equals(msg.getType()))
-				.or(msg -> Msg.ERROR.equals(msg.getType()))
-				.goon()
+				.or(msg -> Msg.ERROR.equals(msg.getType())).goon()
 				.then(msg -> msg.setContent("<font color=\"FF0000\">" + msg.getContent() + "</font>")));
-		
+
 		return strategy;
 	}
 
