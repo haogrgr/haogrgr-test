@@ -6,6 +6,8 @@ import java.util.Map;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.haogrgr.test.model.TestModel;
 
@@ -14,11 +16,14 @@ public class JsonUtils {
 	private static ObjectMapper mapper = new ObjectMapper();
 
 	public static void main(String[] args) {
-		String json = toJson(MapBuilder.makeO("aaaa", "bbbb").build("ccccc", "ddddd"));
+		String json = toJson(ImmutableMap.of("1", "a", "2", "b"));
 		System.out.println(json);
-
-		Map<String, String> map = toMap(json, String.class);
-		System.out.println(map);
+		
+		Map<String, Object> amap = toMap(json);
+		System.out.println(amap);
+		
+		Map<String, String> bmap = toMap(json, String.class);
+		System.out.println(bmap);
 
 		//==============
 
@@ -34,7 +39,7 @@ public class JsonUtils {
 		System.out.println(json);
 
 		TestModel bean = toBean(json, TestModel.class);
-		System.out.println(bean);
+		System.out.println(MoreObjects.toStringHelper(bean).toString());
 	}
 
 	/**
@@ -55,6 +60,18 @@ public class JsonUtils {
 	public static <V> Map<String, V> toMap(String json, Class<V> vclass) {
 		try {
 			return mapper.readValue(json, new TypeReference<Map<String, V>>() {});
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * json转换为map, 不带泛型信息
+	 */
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> toMap(String json) {
+		try {
+			return mapper.readValue(json, Map.class);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
