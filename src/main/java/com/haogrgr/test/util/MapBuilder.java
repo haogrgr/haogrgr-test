@@ -16,6 +16,11 @@ public class MapBuilder<K, V> {
     public static void main(String[] args) {
         System.out.println(MapBuilder.make("a", "a").build("b", "b"));
         System.out.println(MapBuilder.make("a", "a").put("b", "b").build());
+        System.out.println(MapBuilder.of(1, "a"));
+        System.out.println(MapBuilder.of(1, "a", 2, "b"));
+        System.out.println(MapBuilder.of(1, "a", 2, "b", 3, "c"));
+        System.out.println(MapBuilder.of(1, "a", 2, "b", 3, "c", 4, "d"));
+        System.out.println(MapBuilder.of(1, "a", 2, "b", 3, "c", 4, "d", 5, "e"));
     }
     
     public MapBuilder(){}
@@ -38,6 +43,46 @@ public class MapBuilder<K, V> {
     public static <K, V> MapBuilder<K, Object> makeO(K key, Object value ){
         MapBuilder<K, Object> builder = new MapBuilder<K, Object>(key, value);
         return builder;
+    }
+    
+    public static <K, V> Map<K, V> of(K key, V value){
+    	Map<K, V> map = new HashMap<>(4);
+    	map.put(key, value);
+    	return map;
+    }
+    
+    public static <K, V> Map<K, V> of(K key1, V value1, K key2, V value2){
+    	Map<K, V> map = new HashMap<>(4);
+    	map.put(key1, value1);
+    	map.put(key2, value2);
+    	return map;
+    }
+    
+    public static <K, V> Map<K, V> of(K key1, V value1, K key2, V value2, K key3, V value3){
+    	Map<K, V> map = new HashMap<>(8);
+    	map.put(key1, value1);
+    	map.put(key2, value2);
+    	map.put(key3, value3);
+    	return map;
+    }
+    
+    public static <K, V> Map<K, V> of(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4){
+    	Map<K, V> map = new HashMap<>(8);
+    	map.put(key1, value1);
+    	map.put(key2, value2);
+    	map.put(key3, value3);
+    	map.put(key4, value4);
+    	return map;
+    }
+    
+    public static <K, V> Map<K, V> of(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4, K key5, V value5){
+    	Map<K, V> map = new HashMap<>(8);
+    	map.put(key1, value1);
+    	map.put(key2, value2);
+    	map.put(key3, value3);
+    	map.put(key4, value4);
+    	map.put(key5, value5);
+    	return map;
     }
     
     public MapBuilder<K, V> put(K key, V value){
