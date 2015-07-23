@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.haogrgr.test.util.MapBuilder;
+import com.haogrgr.test.util.Maps;
 
 @Controller
 public class HomeController {
@@ -32,7 +32,7 @@ public class HomeController {
 	@ResponseBody
 	@RequestMapping("/json2")
 	public Object json2(){
-		return MapBuilder.make("aaa", "bbb").build("cccc", "ssss");
+		return Maps.of("aaa", "bbb", "cccc", "ssss");
 	}
 	
 	@ResponseBody

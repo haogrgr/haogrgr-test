@@ -7,7 +7,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang.math.RandomUtils;
 
-import com.haogrgr.test.util.MapBuilder;
+import com.haogrgr.test.util.Maps;
 
 /**
  * 百度面试题目:
@@ -34,7 +34,7 @@ import com.haogrgr.test.util.MapBuilder;
 public class RandomPlayList {
 
 	public static void main(String[] args) {
-		Map<String, Integer> list = MapBuilder.make("平凡之路", 89).put("夜空中最亮的星", 95).build("浮夸", 90);
+		Map<String, Integer> list = Maps.of("平凡之路", 89, "夜空中最亮的星", 95, "浮夸", 90);
 
 		TreeMap<Integer, Entry<String, Integer>> map = new TreeMap<>();
 

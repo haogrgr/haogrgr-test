@@ -16,18 +16,15 @@ import java.util.Objects;
 public class SimpleTmpl {
 
 	public static void main(String[] args) {
-		String t1 = "你好 $$name$$, 您的验证码是:$$code$$";
+		String t1 = "你好 $$name$$, 您的验证码是:$$code$$, 感谢支持.";
 		String t2 = "你好 #{name}, 您的验证码是:${code}, 感谢支持${symbol, .}";
 		
-		Map<String, Object> param = MapBuilder.makeO("name", "haogrgr").build("code", "1314");
-//		for (int i = 0; i < 100; i++) {
-//			SimpleTempletUtil.render(t1, param);
-//			Templ.of(t2).render(param);
-//		}
+		Map<String, Object> param = Maps.of("name", "haogrgr", "code", "1314");
 		
 		String result = "";
 		long start = 0;
 		
+		//以前基于正则的实现
 		start = System.currentTimeMillis();
 		for (int i = 0; i < 100000; i++) {
 			param.put("code", i);
@@ -36,6 +33,7 @@ public class SimpleTmpl {
 		System.out.println(System.currentTimeMillis() - start);
 		System.out.println(result);
 		
+		//现在基于解析的实现, 比正则的实现大概快9倍吧
 		start = System.currentTimeMillis();
 		Templ templ = Templ.of(t2);
 		for (int i = 0; i < 100000; i++) {
