@@ -419,7 +419,21 @@ public final class ArithUtils {
 	public static BigDecimal halfUp(double n, int scale) {
 		return BigDecimal.valueOf(n).setScale(scale, RoundingMode.HALF_UP);
 	}
+	
+	/**
+	 * 保留指定小数位,其他的直接舍去
+	 */
+	public static BigDecimal down(BigDecimal n, int scale) {
+		return n.setScale(scale, RoundingMode.DOWN);
+	}
 
+	/**
+	 * 保留指定小数位,其他的直接舍去
+	 */
+	public static BigDecimal down(double n, int scale) {
+		return BigDecimal.valueOf(n).setScale(scale, RoundingMode.DOWN);
+	}
+	
 	/**
 	 * 四舍五入方法保留2位小数位,
 	 */
