@@ -513,9 +513,9 @@ public final class ArithUtils {
 	}
 
 	/**
-	 * 将BigInteger, Float, Double, Long, Integer, Short, Byte转换为BigDecimal
+	 * 将BigInteger, Float, Double, Long, Integer, Short, Byte, String转换为BigDecimal
 	 */
-	public static BigDecimal of(Number number) {
+	public static BigDecimal of(Object number) {
 		Objects.requireNonNull(number);
 
 		Class<?> clazz = number.getClass();
@@ -525,6 +525,9 @@ public final class ArithUtils {
 		}
 		if (clazz == BigDecimal.class) {
 			return (BigDecimal) number;
+		}
+		if(clazz == String.class){
+			return new BigDecimal((String)number);
 		}
 		if (clazz == Integer.class) {
 			return BigDecimal.valueOf((Integer) number);
