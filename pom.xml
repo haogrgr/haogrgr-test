@@ -193,7 +193,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>18.0</version>
+			<version>19.0-rc1</version>
 		</dependency>
 		
 		<!-- quartz -->
@@ -447,7 +447,7 @@
 			<artifactId>netty-all</artifactId>
 			<version>5.0.0.Alpha2</version>
 		</dependency>
-		-->		
+		-->
 		
 	</dependencies>
 
