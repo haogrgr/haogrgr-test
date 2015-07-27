@@ -13,7 +13,13 @@ import java.util.Objects;
  *
  */
 public final class ArithUtils {
-
+	
+	/** 默认除法的保留小数位, 测试发现值为19时的时间比18时多一倍多 **/
+	private static final int DIV_SCALE = 16;
+	
+	/** 默认除法的截取模式为四舍五入 **/
+	private static final RoundingMode DIV_ROUNDING_MODE = RoundingMode.HALF_UP;
+	
 	/**
 	 * return a + b + c
 	 */
@@ -208,47 +214,47 @@ public final class ArithUtils {
 	}
 
 	/**
-	 * return (a / b) / c
+	 * return (a / b) / c, 返回值保留DIV_SCALE位小数
 	 */
 	public static BigDecimal div(BigDecimal a, BigDecimal b, BigDecimal... c) {
 		Objects.requireNonNull(a);
 		Objects.requireNonNull(b);
-
-		BigDecimal divide = a.divide(b);
+		
+		BigDecimal divide = a.divide(b, DIV_SCALE, DIV_ROUNDING_MODE);
 		if (c != null && c.length > 0) {
 			for (int i = 0; i < c.length; i++) {
 				Objects.requireNonNull(c[i]);
-				divide = divide.divide(c[i]);
+				divide = divide.divide(c[i], DIV_SCALE, DIV_ROUNDING_MODE);
 			}
 		}
 		return divide;
 	}
 
 	/**
-	 * return (a / b) / c
+	 * return (a / b) / c, 返回值保留DIV_SCALE位小数
 	 */
 	public static BigDecimal div(BigDecimal a, long b, long... c) {
 		Objects.requireNonNull(a);
 
-		BigDecimal divide = a.divide(BigDecimal.valueOf(b));
+		BigDecimal divide = a.divide(BigDecimal.valueOf(b), DIV_SCALE, DIV_ROUNDING_MODE);
 		if (c != null && c.length > 0) {
 			for (int i = 0; i < c.length; i++) {
-				divide = divide.divide(BigDecimal.valueOf(c[i]));
+				divide = divide.divide(BigDecimal.valueOf(c[i]), DIV_SCALE, DIV_ROUNDING_MODE);
 			}
 		}
 		return divide;
 	}
 
 	/**
-	 * return (a / b) / c
+	 * return (a / b) / c, 返回值保留DIV_SCALE位小数
 	 */
 	public static BigDecimal div(BigDecimal a, double b, double... c) {
 		Objects.requireNonNull(a);
 
-		BigDecimal divide = a.divide(BigDecimal.valueOf(b));
+		BigDecimal divide = a.divide(BigDecimal.valueOf(b), DIV_SCALE, DIV_ROUNDING_MODE);
 		if (c != null && c.length > 0) {
 			for (int i = 0; i < c.length; i++) {
-				divide = divide.divide(BigDecimal.valueOf(c[i]));
+				divide = divide.divide(BigDecimal.valueOf(c[i]), DIV_SCALE, DIV_ROUNDING_MODE);
 			}
 		}
 		return divide;
@@ -479,6 +485,14 @@ public final class ArithUtils {
 
 		return max;
 	}
+	
+	/**
+	 * 取最大值
+	 */
+	public static int max(int a, int b, int c) {
+		return Math.max(Math.max(a, b), c);
+	}
+	
 
 	/**
 	 * 取最小值
