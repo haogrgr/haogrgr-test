@@ -22,7 +22,7 @@ public class RandomUtil {
      * @return 随机数
      */
     public static int random(int n){
-        Random random = new Random(System.currentTimeMillis());
+        Random random = new Random();
         return random.nextInt(n);
     }
     
@@ -33,7 +33,7 @@ public class RandomUtil {
      */
     public static String genRandomStr(int length){
         Random random = new Random();
-        StringBuilder sb = new StringBuilder(length + 5);
+        StringBuilder sb = new StringBuilder(length + 2);
         int index = 0;
         while(index < length){
             int r = random.nextInt(2);
