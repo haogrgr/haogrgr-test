@@ -1,63 +1,40 @@
 package com.haogrgr.test.controller;
 
-import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.haogrgr.test.util.Maps;
 
 @Controller
 public class HomeController {
 
 	@RequestMapping(value = "/")
-	public String test(HttpServletRequest request, Model model) throws Exception {
+	public String test(HttpServletRequest request, Model model) {
 		return "home";
 	}
-	
+
 	@ResponseBody
 	@RequestMapping("/json")
-	public String json(){
+	public String json() {
 		return "{fun:function(){alert(1);}}";
 	}
-	
+
 	@ResponseBody
-	@RequestMapping("/json2")
-	public Object json2(){
-		return Maps.of("aaa", "bbb", "cccc", "ssss");
+	@RequestMapping(value = "/path/{param}")
+	public String path(@PathVariable String param) {
+		System.out.println(param);
+		return "home";
 	}
-	
+
 	@ResponseBody
-	@RequestMapping(value = "/upload/{type}")
-	public String test(@PathVariable String type, @RequestParam(value = "file", required = false) MultipartFile file) {
-		System.out.println(type);
+	@RequestMapping(value = "/upload")
+	public String upload(MultipartFile file) {
 		System.out.println(file.getName());
-		return "home";
-	}
-
-	@RequestMapping(value = "/process")
-	public String process(String name, HttpServletRequest request, Model model) throws Exception {
-		System.err.println(name);
-		return "home";
-	}
-
-	@RequestMapping(value = "/resp")
-	public String testResponseWrite(HttpServletResponse response) {
-		try {
-			response.getWriter().write("success");
-			response.flushBuffer();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return "name:" + file.getName();
 	}
 
 }

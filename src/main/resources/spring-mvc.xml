@@ -51,7 +51,10 @@
 		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
 		<property name="contentType" value="text/html;charset=utf-8" />
 	</bean>
-
+	
+	<!-- json视图 -->
+	<bean name="mappingJackson2JsonView" class="MappingJackson2JsonView" />
+	
 	<!-- 文件上传解析类 -->
 	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
 		<property name="defaultEncoding" value="utf-8" />
