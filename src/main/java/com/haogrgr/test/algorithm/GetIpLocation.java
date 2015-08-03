@@ -25,7 +25,11 @@ import com.google.common.base.Stopwatch;
  *      然后判断ip是否在ip段中, 比如这里就不在
  *      
  *      如果是127.0.0.6, 那么通过ceilingEntry得到的是127.0.1.1, 然后判断ip是否在ip段中, 比如这里就在段中
- *      
+ * 
+ * 时间: TreeMap...
+ * 
+ * 空间: TreeMap...
+ * 
  * 总结: 把IP可以转化为Long, 然后通过TreeMap排序的特性, 将IP段中的上边界放入TreeMap中,
  *      查找时, 找出IP最接近的IP段的上边界, 然后再判断是否在IP段中.
  *      
