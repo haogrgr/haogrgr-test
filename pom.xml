@@ -91,10 +91,12 @@
 			<version>${spring.version}</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- spring session -->
 		<dependency>
 	        <groupId>org.springframework.session</groupId>
 	        <artifactId>spring-session</artifactId>
-	        <version>1.0.1.RELEASE</version>
+	        <version>1.0.3.BUILD-SNAPSHOT</version>
 	    </dependency>
 		
 		<!-- aspectj -->
