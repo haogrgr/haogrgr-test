@@ -34,17 +34,26 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		
+<!-- 		<repository> -->
+<!-- 			<id>central</id> -->
+<!-- 			<snapshots> -->
+<!-- 				<enabled>false</enabled> -->
+<!-- 			</snapshots> -->
+<!-- 			<name>Public Repositories</name> -->
+<!-- 			<url>http://maven.oschina.net/content/groups/public/</url> -->
+<!-- 		</repository> -->
 	</repositories>
 
 	<pluginRepositories>
-		<pluginRepository>
-			<id>central</id>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<name>Public Repositories</name>
-			<url>http://maven.oschina.net/content/groups/public/</url>
-		</pluginRepository>
+<!-- 		<pluginRepository> -->
+<!-- 			<id>central</id> -->
+<!-- 			<snapshots> -->
+<!-- 				<enabled>false</enabled> -->
+<!-- 			</snapshots> -->
+<!-- 			<name>Public Repositories</name> -->
+<!-- 			<url>http://maven.oschina.net/content/groups/public/</url> -->
+<!-- 		</pluginRepository> -->
 	</pluginRepositories>
 	
 	<dependencies>
