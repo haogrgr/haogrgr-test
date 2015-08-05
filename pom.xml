@@ -98,6 +98,13 @@
 	        <artifactId>spring-session</artifactId>
 	        <version>1.0.3.BUILD-SNAPSHOT</version>
 	    </dependency>
+
+		<!-- spring statemachine -->
+		<dependency>
+			<groupId>org.springframework.statemachine</groupId>
+			<artifactId>spring-statemachine-core</artifactId>
+			<version>1.0.0.M3</version>
+		</dependency>
 		
 		<!-- aspectj -->
 		<dependency>
