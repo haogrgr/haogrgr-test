@@ -53,7 +53,7 @@
 	</bean>
 	
 	<!-- json视图 -->
-	<bean name="mappingJackson2JsonView" class="MappingJackson2JsonView" />
+	<bean name="mappingJackson2JsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
 	
 	<!-- 文件上传解析类 -->
 	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
