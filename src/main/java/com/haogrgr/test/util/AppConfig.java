@@ -114,7 +114,11 @@ public class AppConfig implements InitializingBean, ApplicationContextAware {
 			watcher = scheduler.scheduleAtFixedRate(new Runnable() {
 				@Override
 				public void run() {
-					getString("test", "test");
+					try{
+						getString("test", "test");
+					}catch(Throwable e){
+						logger.warn("获取属性出错");
+					}
 				}
 			}, refreshDelayMilliseconds, refreshDelayMilliseconds, TimeUnit.MILLISECONDS);
 		}
