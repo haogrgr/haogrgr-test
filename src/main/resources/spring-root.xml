@@ -15,7 +15,7 @@
 	<!-- 开启注解处理器 -->
 	<context:annotation-config />
 	
-	<!-- 定义扫描根路径为com.ysdai.core，不使用默认的扫描方式 -->
+	<!-- 定义扫描根路径为com.haogrgr.test,不使用默认的扫描方式 -->
 	<context:component-scan base-package="com.haogrgr.test" use-default-filters="false">
 		<!-- 扫描符合@Service @Repository @Component的类 -->
 		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
