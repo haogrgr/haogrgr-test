@@ -5,6 +5,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 可以参考Guava的Striped
+ * 
+ * @author desheng.tu
+ * @date 2015年8月30日 下午1:12:31 
+ *
+ */
 public class ConCurrentLockFetch {
     private AtomicLong[] excepts;
     private AtomicLong[] values;
