@@ -6,6 +6,10 @@ import com.google.common.hash.Funnel;
 /**
  * Guava的BloomFilter包装
  * 
+ * TODO: 包装思路
+ * 
+ * @see http://ifeve.com/volatile-array-visiblity/
+ * 
  * @author desheng.tu
  * @date 2015年8月30日 下午2:05:41
  * 

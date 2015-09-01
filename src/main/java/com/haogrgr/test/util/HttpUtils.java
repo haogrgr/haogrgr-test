@@ -52,10 +52,14 @@ public class HttpUtils {
     public static final String USER_AGENT_APPLE6 = "Mozilla/5.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/600.1.3 (KHTML, like Gecko) Version/8.0 Mobile/12A4345d Safari/600.1.4";
     public static final String USER_AGENT = USER_AGENT_CHROME;
 
-    public static final Integer DEFAULT_CONN_REQ_TIMEOUT = 3000;//向链接池请求链接超时时间(毫秒)
-    public static final Integer DEFAULT_CONN_TIMEOUT = 3000;//与主机建立链接的超时时间(毫秒)
-    public static final Integer DEFAULT_SO_TIMEOUT = 5000;//建立链接后,传输等待超时时间(毫秒)
-    public static final Integer DEFAULT_CONN_POOL_SIZE = 200;//链接池大小
+	//request config
+	public static final Integer DEFAULT_CONN_TIMEOUT = 3000;//与主机建立链接的超时时间(毫秒)
+	public static final Integer DEFAULT_SO_TIMEOUT = 5000;//建立链接后,传输等待超时时间(毫秒)
+	public static final Integer DEFAULT_CONN_REQ_TIMEOUT = 3000;//向链接池请求链接超时时间(毫秒)
+
+	//pooling connect manager config
+	public static final Integer DEFAULT_CONN_POOL_SIZE = 200;//链接池大小
+	public static final Integer DEFAULT_MAX_PER_ROUTE = 200;//一个host的最大链接数
 
     public static void main(String[] args) throws Exception {
         CloseableHttpClient client = getSSLClient("haogrgr.keystore", "haogrgr");
