@@ -1,10 +1,11 @@
 package com.haogrgr.test.interceptor;
 
-import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.haogrgr.test.exception.BizException;
@@ -13,7 +14,7 @@ import com.haogrgr.test.exception.BizException;
 @Component
 public class LogInterceptor {
 
-    private static Logger logger = Logger.getLogger(LogInterceptor.class);
+    private static Logger logger = LoggerFactory.getLogger(LogInterceptor.class);
     
     @Pointcut("execution(* com.haogrgr.test.server..*.*(..))")
     public void logPointcut(){}

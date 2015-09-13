@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" monitorInterval="60">
+	<Appenders>
+		<Console name="CONSOLE" target="SYSTEM_OUT">
+			<PatternLayout>
+				<pattern>[%t][%d{MM-dd HH:mm:ss.SSS}][%c{1}.%M:%L][%p]%x : %m%n</pattern>
+			</PatternLayout>
+		</Console>
+
+		<RollingFile name="ROLLING_FILE" fileName="/logs/haogrgr-test.log" filePattern="/logs/haogrgr-test-%d{yyyy-MM-dd}-%i.log">
+			<PatternLayout>
+				<pattern>[%t][%d{yyyy-MM-dd HH:mm:ss.SSS}][%c.%M:%L][%p]%x : %m%n</pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="30" />
+				<SizeBasedTriggeringPolicy size="100MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="50" />
+		</RollingFile>
+	</Appenders>
+
+	<Loggers>
+		<Logger name="com.haogrgr.test" level="debug" additivity="false">
+			<AppenderRef ref="CONSOLE" />
+		</Logger>
+
+		<Root level="info">
+			<AppenderRef ref="CONSOLE" />
+			<AppenderRef ref="ROLLING_FILE" />
+		</Root>
+	</Loggers>
+</Configuration>

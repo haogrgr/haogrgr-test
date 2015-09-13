@@ -1,6 +1,7 @@
 package com.haogrgr.test.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppContextUtil {
 
-	private static Logger logger = Logger.getLogger(AppContextUtil.class);
+	private static Logger logger = LoggerFactory.getLogger(AppContextUtil.class);
 
 	private static ApplicationContext context = null;
 

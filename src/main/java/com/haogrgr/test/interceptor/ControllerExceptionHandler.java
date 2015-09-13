@@ -2,7 +2,8 @@ package com.haogrgr.test.interceptor;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -21,7 +22,7 @@ import com.haogrgr.test.model.AjaxResult;
 @ControllerAdvice("com.haogrgr.test.controller")
 public class ControllerExceptionHandler implements ResponseBodyAdvice<Object> {
 
-	private static Logger logger = Logger.getLogger(ControllerExceptionHandler.class);
+	private static Logger logger = LoggerFactory.getLogger(ControllerExceptionHandler.class);
 
 	private static final String DEFAULT_ERROR_VIEW = "common/error";
 
