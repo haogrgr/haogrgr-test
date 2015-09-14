@@ -5,6 +5,10 @@ import java.util.concurrent.TimeUnit;
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jvm.FileDescriptorRatioGauge;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.haogrgr.test.util.RandomUtil;
 
 /**
@@ -25,6 +29,10 @@ public class MetricsMain {
 	public static void main(String args[]) {
 		startReport();
 		Meter requests = metrics.meter("requests");
+		metrics.register("jvm.gc", new GarbageCollectorMetricSet());
+		metrics.register("jvm.fd", new FileDescriptorRatioGauge());
+		metrics.register("jvm.mm", new MemoryUsageGaugeSet());
+		metrics.register("jvm.tt", new ThreadStatesGaugeSet());
 		for (int i = 0; i < 1000; i++) {
 			requests.mark();
 			waitRandSeconds();
@@ -32,7 +40,8 @@ public class MetricsMain {
 	}
 
 	static void startReport() {
-		ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).convertRatesTo(TimeUnit.SECONDS)
+		ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
+				.convertRatesTo(TimeUnit.SECONDS)
 				.convertDurationsTo(TimeUnit.MILLISECONDS).build();
 		reporter.start(5, TimeUnit.SECONDS);
 	}
