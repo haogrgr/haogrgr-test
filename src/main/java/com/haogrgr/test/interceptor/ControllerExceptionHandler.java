@@ -17,7 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import com.haogrgr.test.exception.BizException;
-import com.haogrgr.test.model.AjaxResult;
+import com.haogrgr.test.pojo.AjaxResult;
 
 @ControllerAdvice("com.haogrgr.test.controller")
 public class ControllerExceptionHandler implements ResponseBodyAdvice<Object> {

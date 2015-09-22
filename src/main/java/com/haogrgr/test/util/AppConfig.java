@@ -7,7 +7,9 @@ import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PreDestroy;
 
@@ -29,42 +31,64 @@ import org.springframework.core.io.Resource;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * 应用配置熟悉类
+ * 应用配置属性类
  * 
  * @author desheng.tu
  * @date 2015年8月27日 下午3:37:48
  *
  */
-public class AppConfig implements InitializingBean, ApplicationContextAware {
+public class AppConfig implements ApplicationContextAware, InitializingBean {
 
-	private static Logger logger = LoggerFactory.getLogger(AppContextUtil.class);
-
-	private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+	private static Logger logger = LoggerFactory.getLogger(AppConfig.class);
 
 	private Resource configLocation; //配置地址
-	private Long refreshDelayMilliseconds = -1l; //默认不刷新
-	private Map<String, String> defaultConfig = ImmutableMap.of();//默认配置项, 未获取到配置时的配置
+	private Long refreshDelayMilliseconds = 60_000l; //默认60秒刷新
+	@SuppressWarnings("unused")
+	private Map<String, String> defaultConfig = ImmutableMap.of();//默认配置项, 未获取到配置时的配置, 暂不支持
 	private PropertiesConfiguration config;
 
-	private ApplicationContext context;//注入context, 用于发送修改通知事件
-	private ScheduledFuture<?> watcher;//唉, 唉, 唉
+	private ApplicationContext context;
+	private ScheduledExecutorService scheduler;
+	private ScheduledFuture<?> watcher;
 
-	/**
-	 * 获取指定的key值
-	 */
 	public String getString(String key) {
 		String value = config.getString(key);
-		if (value == null) {
-			return defaultConfig.get(key);
-		}
 		return value;
 	}
 
-	/**
-	 * 获取指定的key值, 没有则使用默认值
-	 */
 	public String getString(String key, String defaultValue) {
-		return config.getString(key, defaultValue);
+		String value = config.getString(key, defaultValue);
+		return value;
+	}
+
+	public Long getLong(String key) {
+		Long value = config.getLong(key);
+		return value;
+	}
+
+	public Long getLong(String key, Long defaultValue) {
+		Long value = config.getLong(key, defaultValue);
+		return value;
+	}
+
+	public Integer getInt(String key) {
+		Integer value = config.getInt(key);
+		return value;
+	}
+
+	public Integer getInt(String key, Integer defaultValue) {
+		Integer value = config.getInt(key, defaultValue);
+		return value;
+	}
+
+	public Boolean getBool(String key) {
+		Boolean value = config.getBoolean(key);
+		return value;
+	}
+
+	public Boolean getBool(String key, Boolean defaultVaule) {
+		Boolean value = config.getBoolean(key, defaultVaule);
+		return value;
 	}
 
 	//set, afterPropertiesSet
@@ -109,14 +133,23 @@ public class AppConfig implements InitializingBean, ApplicationContextAware {
 			}
 		});
 
-		//apache common 配置刷新是lazy的, 所以需要主动去get以触发load, 蛋疼
+		//apache common 配置刷新是lazy的, 所以需要主动去get以触发load
 		if (refreshDelayMilliseconds > 0) {
+			scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+				private AtomicInteger inc = new AtomicInteger(0);
+
+				@Override
+				public Thread newThread(Runnable r) {
+					return new Thread(r, "appconfig-" + inc.getAndIncrement());
+				}
+			});
+
 			watcher = scheduler.scheduleAtFixedRate(new Runnable() {
 				@Override
 				public void run() {
-					try{
+					try {
 						getString("test", "test");
-					}catch(Throwable e){
+					} catch (Throwable e) {
 						logger.warn("获取属性出错");
 					}
 				}
@@ -175,14 +208,10 @@ public class AppConfig implements InitializingBean, ApplicationContextAware {
 			watcher.cancel(true);
 			watcher = null;
 		}
+
+		if (scheduler != null) {
+			scheduler.shutdownNow();
+		}
 	}
 
-	static {
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				scheduler.shutdownNow();
-			}
-		});
-	}
 }
