@@ -12,11 +12,15 @@
 				<pattern>[%t][%d{yyyy-MM-dd HH:mm:ss.SSS}][%c.%M:%L][%p]%x : %m%n</pattern>
 			</PatternLayout>
 			<Policies>
-				<TimeBasedTriggeringPolicy interval="30" />
+				<TimeBasedTriggeringPolicy interval="1" modulate="true" />
 				<SizeBasedTriggeringPolicy size="100MB" />
 			</Policies>
-			<DefaultRolloverStrategy max="50" />
+			<DefaultRolloverStrategy max="500" />
 		</RollingFile>
+
+		<Async name="ASYNC_APPENDER">
+			<AppenderRef ref="ROLLING_FILE" />
+		</Async>
 	</Appenders>
 
 	<Loggers>
@@ -26,7 +30,8 @@
 
 		<Root level="info">
 			<AppenderRef ref="CONSOLE" />
-			<AppenderRef ref="ROLLING_FILE" />
+			<AppenderRef ref="ASYNC_APPENDER" />
 		</Root>
 	</Loggers>
+
 </Configuration>
