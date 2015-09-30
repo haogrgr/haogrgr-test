@@ -17,17 +17,19 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 	private transient volatile Node tail;
 	private volatile int state;
 
-	//将节点加入到链表中
+	//将节点加入到链表尾部
 	private Node enq(final Node node) {
-		//链表为空, new个Node放进去, 再将节点加入到链表
 		for (;;) {
 			Node t = tail;
 			if (t == null) {
+				//tail为空, 补上tail/head, 进入下次循环, 将node设置为新的tail
+				//因为acquire时, 如果直接tryacquire成功了, 则不会加入链表, 所以这里补上
 				if (compareAndSetHead(new Node())) {
 					tail = head;
 				}
 			}
 			else {
+				//cas设置tail
 				node.prev = t;
 				if (compareAndSetTail(t, node)) {
 					t.next = node;
@@ -37,12 +39,12 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 		}
 	}
 
-	//添加等待节点到链表
+	//添加指定模式(mode)的等待节点到链表尾部
 	private Node addWaiter(Node mode) {
-		//带添加的节点, mode为独占or共享
+		//待添加的节点, mode为独占(EXCLUSIVE)or共享(SHARED)
 		Node node = new Node(Thread.currentThread(), mode);
 
-		//链表不为空时, 尝试加入链表, 失败再走enq
+		//与enq逻辑类似, 链表不为空时, cas设置tail, 失败再走enq
 		Node pred = tail;
 		if (pred != null) {
 			node.prev = pred;
@@ -51,13 +53,16 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 				return node;
 			}
 		}
+
 		//enq就多了个判断tail为空是, new已个Node放进去, 然后在吧node加入链表
 		enq(node);
+
 		return node;
 	}
 
-	//唤醒node后继的有效状态的节点
+	//唤醒node后继的有效节点, 被cancelAcquire,release等调用
 	private void unparkSuccessor(Node node) {
+
 		//如果状态不为0或CANCELLED, 则改为0, 没改成功也不管 TODO: 为啥没改成功不用管
 		int ws = node.waitStatus;
 		if (ws < 0) {
@@ -99,7 +104,8 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 					//唤醒继任者, 退出循环
 					unparkSuccessor(h);
 				}
-				//头节点状态为0, 则改为PROPAGATE 然后退出循环 //TODO:为啥?
+				//头节点状态为0, 则改为PROPAGATE 然后退出循环 , 改为PROPAGATE表示并非(0, -1, -2), 其他地方并直接未用到这个状态,
+				//但是其他地方通过waitStatus < 0 来进行一些处理
 				else if (ws == 0 && !compareAndSetWaitStatus(h, 0, Node.PROPAGATE)) {
 					continue;
 				}
@@ -329,21 +335,144 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			}
 		}
 	}
-	
-	private void doAcquireSharedInterruptibly(int arg)
-	        throws InterruptedException {
+
+	private void doAcquireSharedInterruptibly(int arg) throws InterruptedException {
 		final Node node = addWaiter(Node.SHARED);
 		boolean failed = true;
-		try{
-			for(;;){
+		try {
+			for (;;) {
 				final Node p = node.predecessor();
-				if(p == head){
-					
+				if (p == head) {
+					int r = tryAcquireShared(arg);
+					if (r >= 0) {
+						setHeadAndPropagate(node, r);
+						p.next = null;
+						failed = false;
+						return;
+					}
+				}
+
+				if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt()) {
+					throw new InterruptedException();
 				}
 			}
-		}finally{}
+		} finally {
+			if (failed) {
+				cancelAcquire(node);
+			}
+		}
 	}
-	
+
+	private boolean doAcquireSharedNanos(int arg, long nanosTimeout) throws InterruptedException {
+		if (nanosTimeout <= 0l) {
+			return false;
+		}
+		final long deadline = System.nanoTime() + nanosTimeout;
+		final Node node = addWaiter(Node.SHARED);
+		boolean failed = true;
+		try {
+			for (;;) {
+				final Node p = node.predecessor();
+				if (p == head) {
+					int r = tryAcquireShared(arg);
+					if (r >= 0) {
+						setHeadAndPropagate(node, r);
+						p.next = null;
+						failed = false;
+						return true;
+					}
+				}
+				nanosTimeout = deadline - System.nanoTime();
+				if (nanosTimeout <= 0l) {
+					return false;
+				}
+				if (shouldParkAfterFailedAcquire(p, node) && nanosTimeout > spinForTimeoutThreshold) {
+					LockSupport.parkNanos(this, nanosTimeout);
+				}
+				if (Thread.interrupted()) {
+					throw new InterruptedException();
+				}
+			}
+		} finally {
+			if (failed) {
+				cancelAcquire(node);
+			}
+		}
+	}
+
+	public final void acquire(int arg) {
+		if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) {
+			selfInterrupt();
+		}
+	}
+
+	public final void acquireInterruptibly(int arg) throws InterruptedException {
+		if (Thread.interrupted()) {
+			throw new InterruptedException();
+		}
+		if (!tryAcquire(arg)) {
+			doAcquireInterruptibly(arg);
+		}
+	}
+
+	public final boolean tryAcquireNanos(int arg, long nanosTimeout) throws InterruptedException {
+		if (Thread.interrupted()) {
+			throw new InterruptedException();
+		}
+		return tryAcquire(arg) || doAcquireNanos(arg, nanosTimeout);
+	}
+
+	//释放逻辑, 返回值为tryRelease结果
+	public final boolean release(int arg) {
+		if (tryRelease(arg)) {//释放成功
+			Node h = head;
+
+			//当没有竞争时, head是为空的, 当有竞争时, head被后面来的线程创建, 并加入队列,
+			//然后在shouldParkAfterFailedAcquire()中修改状态(0 -> -1).
+			//所以这里, head会空的话, 不用unpark继任.
+
+			//head不为空时, 状态不为0, 表示:
+
+			if (h != null && h.waitStatus != 0) {
+				unparkSuccessor(h);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public final void acquireShared(int arg) {
+		if (tryAcquireShared(arg) < 0) {
+			//try失败, 则一直试, 直到成功
+			doAcquireShared(arg);
+		}
+	}
+
+	public final void acquireSharedInterruptibly(int arg) throws InterruptedException {
+		if (Thread.interrupted()) {
+			throw new InterruptedException();
+		}
+		if (tryAcquireShared(arg) < 0) {
+			doAcquireSharedInterruptibly(arg);
+		}
+	}
+
+	public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout) throws InterruptedException {
+		if (Thread.interrupted()) {
+			throw new InterruptedException();
+		}
+		return tryAcquireShared(arg) >= 0 //try成功直接返回, 失败继续试
+				|| doAcquireSharedNanos(arg, nanosTimeout);
+	}
+
+	public final boolean releaseShared(int arg) {
+		if (tryReleaseShared(arg)) {
+			doReleaseShared();
+			return true;
+		}
+		return false;
+	}
+
 	static void selfInterrupt() {
 		Thread.currentThread().interrupt();
 	}
@@ -359,7 +488,19 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 		throw new UnsupportedOperationException();
 	}
 
+	protected boolean tryRelease(int arg) {
+		throw new UnsupportedOperationException();
+	}
+
 	protected int tryAcquireShared(int arg) {
+		throw new UnsupportedOperationException();
+	}
+
+	protected boolean tryReleaseShared(int arg) {
+		throw new UnsupportedOperationException();
+	}
+
+	protected boolean isHeldExclusively() {
 		throw new UnsupportedOperationException();
 	}
 
