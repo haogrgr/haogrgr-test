@@ -1,7 +1,6 @@
 package com.haogrgr.test.juc;
 
 import java.util.concurrent.locks.AbstractOwnableSynchronizer;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.LockSupport;
 
 import sun.misc.Unsafe;
@@ -23,7 +22,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			Node t = tail;
 			if (t == null) {
 				//tail为空, 补上tail/head, 进入下次循环, 将node设置为新的tail
-				//因为acquire时, 如果直接tryacquire成功了, 则不会加入链表, 所以这里补上
+				//因为acquire时, 如果直接tryacquire成功了, 则不会加入链表, 所以这里补上.
 				if (compareAndSetHead(new Node())) {
 					tail = head;
 				}
@@ -41,7 +40,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 
 	//添加指定模式(mode)的等待节点到链表尾部
 	private Node addWaiter(Node mode) {
-		//待添加的节点, mode为独占(EXCLUSIVE)or共享(SHARED)
+		//待添加的节点, mode为独占(EXCLUSIVE)or共享(SHARED), 初始状态为0.
 		Node node = new Node(Thread.currentThread(), mode);
 
 		//与enq逻辑类似, 链表不为空时, cas设置tail, 失败再走enq
@@ -60,7 +59,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 		return node;
 	}
 
-	//唤醒node后继的有效节点, 被cancelAcquire,release等调用
+	//唤醒node后继的有效节点, 被cancelAcquire, doReleaseShared, release方法调用.
 	private void unparkSuccessor(Node node) {
 
 		//如果状态不为0或CANCELLED, 则改为0, 没改成功也不管 TODO: 为啥没改成功不用管
@@ -73,6 +72,11 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 		Node tobeUnpark = node.next;
 		if (tobeUnpark == null || tobeUnpark.waitStatus > 0) {
 			//next为空或无效, 从尾到头遍历, 直到碰到最前的有效状态的节点
+			//这里不从头开始遍历是因为: 从头开始的话, 就是t.next一路遍历下去
+			//但是AQS是LCH的变种, next是优化, 不是原子性更新的, 不可靠
+			//见Doug Lea大师的论文: http://ifeve.com/aqs-2/ (3.3 队列一节)
+			//next链接仅是一种优化。如果通过某个节点的next字段发现其后继结点不存在（或看似被取消了），
+			//总是可以使用pred字段从尾部开始向前遍历来检查是否真的有后续节点。
 			tobeUnpark = null;
 			for (Node t = tail; t != null && t != node; t = t.prev) {
 				if (t.waitStatus <= 0) {
@@ -165,10 +169,10 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			int ws;
 			//非首节点,且状态为-1,且线程属性不为空
 			if (pred != head //不为首节点
-					//pred状态为-1, 如果不为-1, 就修改为-1
+					//pred状态为-1, 如果不为-1, 就修改为-1, 如果修改失败, 就唤醒继任
 					&& ((ws = pred.waitStatus) == Node.SIGNAL //
 					/**/|| (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) //
-					&& pred.thread != null //线程不为空 TODO:为啥
+					&& pred.thread != null //线程不为空 TODO:为啥, 因为为空, 就表示取消, 或者成为了head了.
 			) {
 				//继任者需要signal, 设置pred新的next
 				Node next = node.next;
@@ -569,9 +573,9 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 
 	static {
 		try {
-			stateOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.class.getDeclaredField("state"));
-			headOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.class.getDeclaredField("head"));
-			tailOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.class.getDeclaredField("tail"));
+			stateOffset = unsafe.objectFieldOffset(MyAqs.class.getDeclaredField("state"));
+			headOffset = unsafe.objectFieldOffset(MyAqs.class.getDeclaredField("head"));
+			tailOffset = unsafe.objectFieldOffset(MyAqs.class.getDeclaredField("tail"));
 			waitStatusOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("waitStatus"));
 			nextOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("next"));
 		} catch (Exception ex) {
