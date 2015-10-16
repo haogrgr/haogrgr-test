@@ -28,7 +28,9 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 				}
 			}
 			else {
-				//cas设置tail
+				//1.设置node.prev, 2.cas设置node为tail, 3.成功, 再设置t.next
+				//所以, 入队成功(2操作完), 则prev一定被设置, 但是可能3还没有执行, 所以prev.next可能为null
+				//所以, 后面可以看到有些地方并不是.next遍历下去, 而是.prev遍历下去, 防止漏掉已入队的节点
 				node.prev = t;
 				if (compareAndSetTail(t, node)) {
 					t.next = node;
@@ -124,20 +126,18 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 
 	//设置node为头节点, 检查继任者是不是共享模式, 如果是, 且(propagate值大于0或继任者PROPAGATE被设置)
 	//则共享释放(head状态设置为0或-3, 唤醒继任者)  :  增殖
+	//propagate: tryAcquireShared的返回值, 一般是state减去acquires, 大于0表示还可以继续try.
 	private void setHeadAndPropagate(Node node, long propagate) {
-		Node h = head;
+		Node h = head;//旧的head
 		setHead(node);//设置新的头节点
 
-		//TODO: 这几个条件待撸
-		if (propagate > 0 // tryAcquireShared的返回值, 一般是state减去acquires, 
-				|| h == null //原来的head为空
-				|| h.waitStatus < 0 //原来的head等待状态小于0
-				|| (h = head) == null //head为空了
-				|| h.waitStatus < 0) { //新的head等待状态小于0
+		if (propagate > 0 //还可以继续tryAcquireShared, 可能等于0
+				|| h == null || h.waitStatus < 0 //原来的head等待状态为PROPAGATE 猜测, 前head已经release了, 所以这里可以继续unpark
+				|| (h = head) == null || h.waitStatus < 0) { //新的head等待状态小于0
 			//下一个节点不为空, 且是共享模式, 就释放(头节点状态变为0,-3, 唤醒继任者, 如果有的话)
 			Node s = node.next;
 			if (s == null || s.isShared()) {
-				doReleaseShared();
+				doReleaseShared();//感觉里面的逻辑和unpark很想
 			}
 		}
 	}
@@ -150,7 +150,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 
 		node.thread = null;
 
-		//跳过cancelled的前驱节点
+		//跳过状态为取消的前驱节点
 		Node pred = node.prev;
 		while (pred.waitStatus > 0) {
 			node.prev = pred = pred.prev;
@@ -160,31 +160,41 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 
 		node.waitStatus = Node.CANCELLED;
 
-		//更新新的尾节点为node的前面的第一个有效的节点
+		//node为tail节点, 则更新tail为有效的前驱节点
 		if (node == tail && compareAndSetTail(node, pred)) {
+			//设置tail成功后, 修改tail.next为null, 失败没关系(可能有新的节点入队列了)
 			compareAndSetNext(pred, predNext, null);
 		}
-		//
+		//node不是tail, 表示node后面有节点可能要唤醒, 如果不需要唤醒, 则更新下队列就好
 		else {
 			int ws;
-			//非首节点,且状态为-1,且线程属性不为空
-			if (pred != head //不为首节点
-					//pred状态为-1, 如果不为-1, 就修改为-1, 如果修改失败, 就唤醒继任
-					&& ((ws = pred.waitStatus) == Node.SIGNAL //
-					/**/|| (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) //
-					&& pred.thread != null //线程不为空 TODO:为啥, 因为为空, 就表示取消, 或者成为了head了.
+			if (pred != head //1.1
+					&& ((ws = pred.waitStatus) == Node.SIGNAL //2.1
+					/*    */|| (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) //2.2
+					&& pred.thread != null //3.1
 			) {
-				//继任者需要signal, 设置pred新的next
+				//1.1.非首节点(意味着不需要唤醒后继节点)
+				//2.1.pred状态为SIGNAL, 意味着不用修改状态为SIGNAL
+				//2.2.pred状态不为SIGNAL, 则修改为SIGNAL, 标记后续节点要唤醒.
+				//3.1.pred.thread不为空(为空就表示pred被取消了或成head了, 这时就要唤醒后继了)
+				//满足1,2,3表示, 后继的节点不需要唤醒, 只要更新下队列, 避免多余的唤醒
+
+				//将node的next移动到prev上去, 完成node的出队, (如果next有且有效的话)
 				Node next = node.next;
 				if (next != null && next.waitStatus <= 0) {
 					compareAndSetNext(pred, predNext, next);
 				}
 			}
-			//pred为首节点, 或线程属性为空, 或修改Node状态为-1失败
 			else {
-				//唤醒后继节点  TODO:为啥
+				//1.首节点->要唤醒node.next
+				//2.修改为pred状态为SIGNAL失败(可能是prev被(成head然后realease了)或(cancel)了) -> 唤醒吧
+				//3.pred.thread为空(为空就表示pred被取消了或成head了, 这时就要唤醒后继了) -> 唤醒吧
+				//node的出队, 交给unparkSuccessor
 				unparkSuccessor(node);
 			}
+
+			//通过将next指向自己, 标记node被取消, 简化isOnSyncQueue的实现
+			node.next = node; // help GC
 		}
 
 	}
@@ -193,17 +203,22 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 	//true:线程需要阻塞
 	private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
 		int ws = pred.waitStatus;
-		if (ws == Node.SIGNAL) {//-1等待
+		if (ws == Node.SIGNAL) {
+			//表示前驱节点状态已经被标记为SIGNAL状态了, 我可以放心阻塞了.
 			return true;
 		}
-		if (ws > 0) {//取消, 更新前驱节点引用, 返回false, 继续尝试
+		if (ws > 0) {
+			//取消状态, 跳过取消的前驱节点, 返回false, 
+			//方法外层会继续重试.
 			do {
 				node.prev = pred = pred.prev;
 			}
 			while (pred.waitStatus > 0);
 		}
-		else {//小于等于0, 更新前驱节点状态为-1, 返回false, 继续尝试;
-				//这里不需要判断是否修改成功, 因为外部是循环, 所以等待下一次进入此方法就行了
+		else {
+			//前驱状态满足(0 or CONDITION or PROPAGATE)情况下啊, 更新前驱节点状态为SIGNAL, 
+			//意思就是, 我这里tryAcquire失败了, 要阻塞了, 标记下前驱节点状态为SIGNAL, 好在后面唤醒我.
+			//这里不需要判断是否修改成功, 因为外部是循环, 所以等待下一次进入此方法就行了, 返回false, 继续重试.
 			compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
 		}
 		return false;
