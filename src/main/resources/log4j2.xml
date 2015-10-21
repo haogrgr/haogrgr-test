@@ -18,7 +18,7 @@
 			<DefaultRolloverStrategy max="500" />
 		</RollingFile>
 
-		<Async name="ASYNC_APPENDER">
+		<Async name="ASYNC_APPENDER" errorRef="ROLLING_FILE">
 			<AppenderRef ref="ROLLING_FILE" />
 		</Async>
 	</Appenders>
