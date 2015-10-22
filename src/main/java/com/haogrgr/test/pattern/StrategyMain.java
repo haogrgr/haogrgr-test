@@ -1,11 +1,11 @@
-package com.haogrgr.test.pattern.strategy;
+package com.haogrgr.test.pattern;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class Main {
+public class StrategyMain {
 
 	public static void main(String[] args) {
 		MsgProcessStrategy strategy = new MsgProcessStrategy();
