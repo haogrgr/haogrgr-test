@@ -18,6 +18,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  * 
  * Spring使用这个方法来设置@PathVariable
  * org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping.handleMatch(RequestMappingInfo, String, HttpServletRequest)
+ * 
+ * TODO: MapWapper{param1=MapWapper{param2:value}} 改为   MapWapper{param1=HashMap{param2:value}}, 并提供MapWapper.toHashMap()
  */
 public class PrefixMapMethodArgumentResolver implements HandlerMethodArgumentResolver {
 

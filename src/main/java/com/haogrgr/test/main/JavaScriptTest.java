@@ -1,24 +1,19 @@
 package com.haogrgr.test.main;
 
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
-/**
- * spring el 使用
- * 
- * @author desheng.tu
- * @date 2015年10月20日 下午6:44:39
- *
- */
-public class SpelTest {
+public class JavaScriptTest {
 
 	public static void main(String[] args) throws Exception {
+		ScriptEngineManager manager = new ScriptEngineManager();
+		ScriptEngine engine = manager.getEngineByName("JavaScript");
+
 		User user = new User(1, "haogrgr");
-		Expression exp = new SpelExpressionParser().parseExpression("(id = 2)+(name = 'test')");
-		EvaluationContext context = new StandardEvaluationContext(user);
-		exp.getValue(context);
+		engine.put("user", user);
+
+		engine.eval("if(user.id == 1) {user.name='xxxxx'; user.id = 2;}");
+
 		System.out.println(user);
 	}
 
