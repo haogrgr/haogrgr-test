@@ -1,23 +1,24 @@
 package com.haogrgr.test.util;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PreDestroy;
 
-import org.apache.commons.configuration.AbstractFileConfiguration;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -28,10 +29,8 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
- * 应用配置属性类
+ * 应用配置属性类, 配置刷新时会向Spring发送AppConfigReloadedEvent事件.
  * 
  * @author desheng.tu
  * @date 2015年8月27日 下午3:37:48
@@ -41,54 +40,42 @@ public class AppConfig implements ApplicationContextAware, InitializingBean {
 
 	private static Logger logger = LoggerFactory.getLogger(AppConfig.class);
 
-	private Resource configLocation; //配置地址
-	private Long refreshDelayMilliseconds = 60_000l; //默认60秒刷新
-	@SuppressWarnings("unused")
-	private Map<String, String> defaultConfig = ImmutableMap.of();//默认配置项, 未获取到配置时的配置, 暂不支持
-	private PropertiesConfiguration config;
+	private volatile Map<String, String> config;
+
+	private Resource configLocation; //配置文件
+	private Integer refreshDelaySeconds = 180; //默认180秒刷新
+	private final Lock lock = new ReentrantLock();
 
 	private ApplicationContext context;
 	private ScheduledExecutorService scheduler;
+
+	private boolean setScheduler = false; //外部的scheduler由外部关闭
 	private ScheduledFuture<?> watcher;
 
-	public String getString(String key) {
-		String value = config.getString(key);
-		return value;
+	public String getStr(String key) {
+		String val = getValue(key);
+		return val;
 	}
 
-	public String getString(String key, String defaultValue) {
-		String value = config.getString(key, defaultValue);
-		return value;
-	}
-
-	public Long getLong(String key) {
-		Long value = config.getLong(key);
-		return value;
-	}
-
-	public Long getLong(String key, Long defaultValue) {
-		Long value = config.getLong(key, defaultValue);
-		return value;
+	public String getStr(String key, String defaultValue) {
+		String val = getValue(key);
+		return val != null ? val : defaultValue;
 	}
 
 	public Integer getInt(String key) {
-		Integer value = config.getInt(key);
-		return value;
+		String val = getValue(key);
+		return val == null ? null : Integer.valueOf(val);
 	}
 
 	public Integer getInt(String key, Integer defaultValue) {
-		Integer value = config.getInt(key, defaultValue);
-		return value;
+		String val = getValue(key);
+		return val == null ? defaultValue : Integer.valueOf(val);
 	}
 
-	public Boolean getBool(String key) {
-		Boolean value = config.getBoolean(key);
-		return value;
-	}
-
-	public Boolean getBool(String key, Boolean defaultVaule) {
-		Boolean value = config.getBoolean(key, defaultVaule);
-		return value;
+	//key不为null判断
+	private String getValue(String key) {
+		Objects.requireNonNull(key, "key不能为null");
+		return config.get(key);
 	}
 
 	//set, afterPropertiesSet
@@ -97,13 +84,16 @@ public class AppConfig implements ApplicationContextAware, InitializingBean {
 		this.configLocation = configLocation;
 	}
 
-	public void setRefreshDelayMilliseconds(Long refreshDelayMilliseconds) {
-		this.refreshDelayMilliseconds = refreshDelayMilliseconds;
+	public void setRefreshDelaySeconds(Integer refreshDelaySeconds) {
+		this.refreshDelaySeconds = refreshDelaySeconds;
 	}
 
-	public void setDefaultConfig(Map<String, String> defaultConfig) {
-		this.defaultConfig = defaultConfig;
+	public void setScheduler(ScheduledExecutorService scheduler) {
+		this.scheduler = scheduler;
+		this.setScheduler = true;//谁创建, 谁关闭
 	}
+
+	//spring
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -113,76 +103,126 @@ public class AppConfig implements ApplicationContextAware, InitializingBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Objects.requireNonNull(configLocation, "配置文件地址不能为空");
+		Objects.requireNonNull(configLocation.getFile(), "配置文件不能为空");
 
-		this.config = new PropertiesConfiguration(configLocation.getURL());
+		//初始化properties
+		loadConfig();
 
-		//配置刷新策略
-		if (refreshDelayMilliseconds > 0) {
-			FileChangedReloadingStrategy strategy = new FileChangedReloadingStrategy();
-			strategy.setRefreshDelay(refreshDelayMilliseconds);
-			config.setReloadingStrategy(strategy);
-		}
-
-		//发布配置重新加载事件
-		config.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if (event.getType() == AbstractFileConfiguration.EVENT_RELOAD && !event.isBeforeUpdate()) {
-					context.publishEvent(new AppConfigReloadedEvent(AppConfig.this));
-				}
+		//自动刷新检查定时任务
+		if (refreshDelaySeconds > 0) {
+			if (scheduler == null) {
+				scheduler = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory());
 			}
-		});
 
-		//apache common 配置刷新是lazy的, 所以需要主动去get以触发load
-		if (refreshDelayMilliseconds > 0) {
-			scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-				private AtomicInteger inc = new AtomicInteger(0);
-
-				@Override
-				public Thread newThread(Runnable r) {
-					return new Thread(r, "appconfig-" + inc.getAndIncrement());
-				}
-			});
-
-			watcher = scheduler.scheduleAtFixedRate(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						getString("test", "test");
-					} catch (Throwable e) {
-						logger.warn("获取属性出错");
-					}
-				}
-			}, refreshDelayMilliseconds, refreshDelayMilliseconds, TimeUnit.MILLISECONDS);
+			watcher = scheduler.scheduleAtFixedRate(new ConfigMonitorTask(this, configLocation.getFile()),
+					refreshDelaySeconds, refreshDelaySeconds, TimeUnit.SECONDS);
 		}
 
-		//日志
-		logger.info("加载配置文件 : " + configLocation.getURL());
-		if (logger.isDebugEnabled()) {
-			Iterator<String> keys = config.getKeys();
-			while (keys.hasNext()) {
-				String key = keys.next();
-				logger.debug("key: " + key + ", value: " + config.getProperty(key));
-			}
+		printDebugLog();
+	}
+
+	//从properties配置文件中加载配置
+	private void loadConfig() throws IOException {
+		Properties props = new Properties();
+		InputStream input = configLocation.getInputStream();
+		try {
+			props.load(input);
+		} finally {
+			input.close();
 		}
+
+		HashMap<String, String> map = new HashMap<>(props.size());
+		for (Map.Entry<Object, Object> entry : props.entrySet()) {
+			Objects.requireNonNull(entry.getValue());
+			map.put((String) entry.getKey(), (String) entry.getValue());
+		}
+
+		this.config = map;
 	}
 
 	/**
-	 * 测试, 及日志输出
+	 * 输出日志输出
 	 */
 	@EventListener
 	public void onConfigReloaded(AppConfigReloadedEvent event) {
+		printDebugLog();
+	}
+
+	/**
+	 * debug输出配置
+	 */
+	private void printDebugLog() {
 		try {
-			logger.warn("重新加载配置文件 : " + configLocation.getURL());
+			logger.info("加载配置文件 : " + configLocation.getURL());
 			if (logger.isDebugEnabled()) {
-				Iterator<String> keys = config.getKeys();
-				while (keys.hasNext()) {
-					String key = keys.next();
-					logger.debug("key: " + key + ", value: " + config.getProperty(key));
+				StringBuilder sb = new StringBuilder();
+				for (Entry<String, String> entry : config.entrySet()) {
+					sb.append("\nkey: ").append(entry.getKey()).append(", value: ").append(entry.getValue());
 				}
+				logger.debug(sb.toString());
 			}
 		} catch (IOException e) {
 			logger.error("重新加载配置文件 : 获取配置文件路径错误");
+		}
+	}
+
+	@PreDestroy
+	public void cancelWatcher() {
+		if (watcher != null) {
+			watcher.cancel(true);
+			watcher = null;
+		}
+
+		if (scheduler != null && setScheduler) {
+			scheduler.shutdownNow();
+		}
+	}
+
+	//自定义线程工厂
+	private static class NamedThreadFactory implements ThreadFactory {
+
+		private AtomicInteger inc = new AtomicInteger(0);
+
+		@Override
+		public Thread newThread(Runnable r) {
+			return new Thread(r, "appconfig-" + inc.getAndIncrement());
+		}
+
+	}
+
+	//定时任务, 根据文件修改时间, 刷新配置
+	private static class ConfigMonitorTask implements Runnable {
+
+		private final AppConfig config;
+		private final File file;
+		private volatile long lastModified;
+
+		public ConfigMonitorTask(AppConfig config, File file) {
+			this.config = config;
+			this.file = file;
+			this.lastModified = file.lastModified();
+		}
+
+		@Override
+		public void run() {
+			config.lock.lock();
+			try {
+				final long currentLastModified = file.lastModified();
+				if (currentLastModified <= lastModified) {
+					return;
+				}
+
+				lastModified = currentLastModified;
+
+				config.loadConfig();
+
+				//发布配置重新加载
+				config.context.publishEvent(new AppConfigReloadedEvent(config));
+			} catch (IOException e) {
+				logger.error("重新加载配置文件异常", e);
+			} finally {
+				config.lock.unlock();
+			}
 		}
 	}
 
@@ -199,18 +239,6 @@ public class AppConfig implements ApplicationContextAware, InitializingBean {
 
 		public AppConfig getAppConfig() {
 			return (AppConfig) this.getSource();
-		}
-	}
-
-	@PreDestroy
-	public void cancelWatcher() {
-		if (watcher != null) {
-			watcher.cancel(true);
-			watcher = null;
-		}
-
-		if (scheduler != null) {
-			scheduler.shutdownNow();
 		}
 	}
 
