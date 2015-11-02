@@ -14,15 +14,15 @@ import com.haogrgr.test.model.BaseModel;
 import com.haogrgr.test.util.ExpUtil;
 import com.haogrgr.test.util.PageInfo;
 
-public abstract class BaseServiceSupport<T extends BaseModel> implements BaseService<T> {
+public abstract class BaseServiceSupport<T extends BaseModel, K> implements BaseService<T, K> {
 
 	/**
 	 * Spring4以上版本可以使用泛型注入,但是,不太喜欢
 	 */
-    public abstract BaseMapper<T> getMapper();
+    public abstract BaseMapper<T, K> getMapper();
 
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-    public T findById(Integer id) {
+    public T findById(K id) {
         ExpUtil.throwExp(id == null, "ID为空");
         T result = getMapper().findById(id);
         return result;
@@ -73,8 +73,7 @@ public abstract class BaseServiceSupport<T extends BaseModel> implements BaseSer
             obj.setCreateTime(new Date());
         }
         Integer insert = getMapper().insert(obj);
-        ExpUtil.throwExp(insert == null || insert.intValue() != 1, "插入记录失败!");
-        return obj.getId();
+        return insert;
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -142,16 +141,16 @@ public abstract class BaseServiceSupport<T extends BaseModel> implements BaseSer
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Integer delete(Integer id) {
+    public Integer delete(K id) {
         ExpUtil.throwExp(id == null, "ID为空");
         Integer delete = getMapper().delete(id);
         return delete;
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Integer deletes(Integer[] ids) {
+    public Integer deletes(K[] ids) {
         ExpUtil.throwExp(ids == null, "参数为空");
-        for (Integer id : ids) {
+        for (K id : ids) {
             ExpUtil.throwExp(id == null, "ID为空");
         }
         Integer count = getMapper().deletes(ids);

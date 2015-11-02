@@ -6,9 +6,9 @@ import org.apache.ibatis.annotations.Param;
 
 import com.haogrgr.test.util.PageInfo;
 
-public interface BaseMapper<T> {
+public interface BaseMapper<T, K> {
 
-    public T findById(Integer id);
+    public T findById(K id);
     
     public List<T> findByPage(PageInfo<T> pageInfo);
 
@@ -24,10 +24,10 @@ public interface BaseMapper<T> {
 
     public Integer inserts(@Param("list") List<T> list);
 
-    public Integer delete(Integer id);
+    public Integer delete(K id);
 
-    public Integer deletes(@Param("ids") Integer[] ids);
+    public Integer deletes(@Param("ids") K[] ids);
     
-    public List<T> load(@Param("ids") Integer[] ids);
+    public List<T> load(@Param("ids") K[] ids);
 
 }

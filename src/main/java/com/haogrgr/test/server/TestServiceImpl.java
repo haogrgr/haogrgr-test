@@ -11,7 +11,7 @@ import com.haogrgr.test.dao.TestMapper;
 import com.haogrgr.test.model.TestModel;
 
 @Service
-public class TestServiceImpl extends BaseServiceSupport<TestModel> implements TestService {
+public class TestServiceImpl extends BaseServiceSupport<TestModel, Integer> implements TestService {
 
 	@Resource
 	private TestMapper testMapper;
@@ -24,7 +24,7 @@ public class TestServiceImpl extends BaseServiceSupport<TestModel> implements Te
 	}
 
 	@Override
-	public BaseMapper<TestModel> getMapper() {
+	public BaseMapper<TestModel, Integer> getMapper() {
 		return testMapper;
 	}
 

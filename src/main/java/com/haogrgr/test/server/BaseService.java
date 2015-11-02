@@ -6,11 +6,11 @@ import com.haogrgr.test.dao.BaseMapper;
 import com.haogrgr.test.model.BaseModel;
 import com.haogrgr.test.util.PageInfo;
 
-public interface BaseService<T extends BaseModel> {
+public interface BaseService<T extends BaseModel, K> {
     
-    public BaseMapper<T> getMapper();
+    public BaseMapper<T, K> getMapper();
     
-    public T findById(Integer id);
+    public T findById(K id);
 
     public List<T> findByPage(PageInfo<T> pageInfo);
     
@@ -30,8 +30,8 @@ public interface BaseService<T extends BaseModel> {
 
     public Integer update(T obj);
 
-    public Integer delete(Integer id);
+    public Integer delete(K id);
 
-    public Integer deletes(Integer[] ids);
+    public Integer deletes(K[] ids);
     
 }
