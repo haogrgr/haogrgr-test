@@ -1,6 +1,6 @@
 package com.haogrgr.test.model;
 
-public class TestModel extends BaseModel {
+public class TestModel extends BaseModel<Integer> {
 
 	private static final long serialVersionUID = -1L;
 

@@ -2,26 +2,26 @@ package com.haogrgr.test.model;
 
 import java.util.Date;
 
-public abstract class BaseModel implements java.io.Serializable {
+public abstract class BaseModel<K> implements java.io.Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    protected Integer id;
+    protected K id;
     protected Date modifyTime;
     protected Date createTime;
     
     public BaseModel() {
     }
     
-    public BaseModel(Integer id){
+    public BaseModel(K id){
         this.id = id;
     }
     
-    public Integer getId() {
+    public K getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(K id) {
         this.id = id;
     }
 
