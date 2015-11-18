@@ -103,13 +103,14 @@ public class AppConfig implements ApplicationContextAware, InitializingBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Objects.requireNonNull(configLocation, "配置文件地址不能为空");
-		Objects.requireNonNull(configLocation.getFile(), "配置文件不能为空");
 
 		//初始化properties
 		loadConfig();
 
 		//自动刷新检查定时任务
 		if (refreshDelaySeconds > 0) {
+			Objects.requireNonNull(configLocation.getFile(), "配置文件不能为空");//自动刷新时, 配置文件不能在jar中
+
 			if (scheduler == null) {
 				scheduler = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory());
 			}
@@ -157,7 +158,7 @@ public class AppConfig implements ApplicationContextAware, InitializingBean {
 			if (logger.isDebugEnabled()) {
 				StringBuilder sb = new StringBuilder();
 				for (Entry<String, String> entry : config.entrySet()) {
-					sb.append("\nkey: ").append(entry.getKey()).append(", value: ").append(entry.getValue());
+					sb.append('\n').append(entry.getKey()).append('=').append(entry.getValue());
 				}
 				logger.debug(sb.toString());
 			}
@@ -173,7 +174,7 @@ public class AppConfig implements ApplicationContextAware, InitializingBean {
 			watcher = null;
 		}
 
-		if (scheduler != null && setScheduler) {
+		if (scheduler != null && !setScheduler) {
 			scheduler.shutdownNow();
 		}
 	}
