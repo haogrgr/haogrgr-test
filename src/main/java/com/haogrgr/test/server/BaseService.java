@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.haogrgr.test.dao.BaseMapper;
 import com.haogrgr.test.model.BaseModel;
-import com.haogrgr.test.util.PageInfo;
+import com.haogrgr.test.pojo.PageInfo;
 
 public interface BaseService<T extends BaseModel<K>, K> {
 

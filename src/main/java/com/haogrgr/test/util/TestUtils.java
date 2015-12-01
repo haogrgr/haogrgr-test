@@ -11,6 +11,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.haogrgr.test.pojo.PageInfo;
+
 public class TestUtils {
 
 	public static void main(String[] args) {

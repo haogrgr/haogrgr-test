@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
-import com.haogrgr.test.util.PageInfo;
+import com.haogrgr.test.pojo.PageInfo;
 
 public interface BaseMapper<T, K> {
 

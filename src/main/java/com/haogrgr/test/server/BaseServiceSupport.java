@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.haogrgr.test.dao.BaseMapper;
 import com.haogrgr.test.model.BaseModel;
+import com.haogrgr.test.pojo.PageInfo;
 import com.haogrgr.test.util.ExpUtil;
-import com.haogrgr.test.util.PageInfo;
 
 public abstract class BaseServiceSupport<T extends BaseModel<K>, K> implements BaseService<T, K> {
 

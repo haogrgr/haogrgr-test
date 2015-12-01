@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.haogrgr.test.main.Test;
+import com.haogrgr.test.pojo.PageInfo;
 import com.haogrgr.test.server.TestService;
-import com.haogrgr.test.util.PageInfo;
 
 @Controller
 @RequestMapping("/test")
