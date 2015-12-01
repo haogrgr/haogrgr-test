@@ -55,7 +55,7 @@
 		</property>
 		<property name="typeAliases">
 			<list>
-				<value>com.haogrgr.test.util.PageInfo</value>
+				<value>com.haogrgr.test.pojo.PageInfo</value>
 			</list>
 		</property>
 	</bean>
