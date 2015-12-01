@@ -3,35 +3,87 @@ package com.haogrgr.test.server;
 import java.util.List;
 
 import com.haogrgr.test.dao.BaseMapper;
-import com.haogrgr.test.model.BaseModel;
 import com.haogrgr.test.pojo.PageInfo;
 
-public interface BaseService<T extends BaseModel<K>, K> {
+/**
+ * 通用Service接口
+ * 
+ * @author desheng.tu
+ * @date 2015年12月1日 下午4:39:52 
+ * 
+ * @param <T> Model类型
+ * @param <PK> 主键类型
+ */
+public interface BaseService<T, PK> {
 
-	public BaseMapper<T, K> getMapper();
+	/**
+	 * 获取底层对应的Mapper类
+	 */
+	public BaseMapper<T, PK> getMapper();
 
-	public T findById(K id);
+	/**
+	 * 根据主键查找记录, 返回对应记录
+	 */
+	public T findById(PK pk);
 
-	public List<T> findByPage(PageInfo<T> pageInfo);
+	/**
+	 * 分页查询, 返回分页对象, 包含分页记录, 和总记录数
+	 */
+	public <M> PageInfo<M> findByPage(PageInfo<M> page);
 
-	public List<T> findByPageList(PageInfo<T> pageInfo);
+	/**
+	 * 分页查询, 返回分页列表
+	 */
+	public <M> List<M> findByPageList(PageInfo<M> page);
 
-	public Integer findByPageCount(PageInfo<T> pageInfo);
+	/**
+	 * 分页查询, 返回总记录数
+	 */
+	public <M> Integer findByPageCount(PageInfo<M> page);
 
+	/**
+	 * 根据主键批量查找对应的记录, 返回对应记录
+	 */
+	public List<T> load(List<PK> pks);
+
+	/**
+	 * 修改记录, 返回修改的记录数
+	 */
+	public Integer update(T record);
+
+	/**
+	 * 查询所有记录
+	 */
 	public List<T> all();
 
+	/**
+	 * 查询总记录数
+	 */
 	public Integer count();
 
-	public Integer insert(T obj);
+	/**
+	 * 插入记录, 返回插入记录数(0 or 1)
+	 */
+	public Integer insert(T record);
 
-	public Integer inserts(List<T> list);
+	/**
+	 * mysql批量插入记录, 返回插入记录条数.
+	 */
+	public Integer inserts(List<T> records);
 
-	public Integer inserts(List<T> list, int betchSize);
+	/**
+	 * mysql批量插入记录, 按betchSize分批提交, 返回插入记录条数.
+	 */
+	public Integer inserts(List<T> records, int betchSize);
 
-	public Integer update(T obj);
+	/**
+	 * 根据主键删除, 返回删除记录数
+	 */
+	public Integer delete(PK pk);
 
-	public Integer delete(K id);
-
-	public Integer deletes(K[] ids);
+	/**
+	 * 根据主键批量删除, 返回删除记录数, 注意: 联合主键, 不支持该操作
+	 */
+	public Integer deletes(List<PK> pks);
 
 }

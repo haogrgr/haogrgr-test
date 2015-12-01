@@ -25,12 +25,12 @@ public interface BaseMapper<T, PK> {
 	/**
 	 * 分页查询, 返回分页列表
 	 */
-	public List<T> findByPage(PageInfo<T> pageInfo);
+	public <M> List<M> findByPage(PageInfo<M> pageInfo);
 
 	/**
 	 * 分页查询, 返回总记录数
 	 */
-	public Integer findByPageCount(PageInfo<T> pageInfo);
+	public <M> Integer findByPageCount(PageInfo<M> pageInfo);
 
 	/**
 	 * 根据主键批量查找对应的记录, 返回对应记录
@@ -38,7 +38,7 @@ public interface BaseMapper<T, PK> {
 	public List<T> load(@Param("pks") List<PK> pks);
 
 	/**
-	 * 修改记录
+	 * 修改记录, 返回修改的记录数
 	 */
 	public Integer update(T record);
 
