@@ -69,7 +69,7 @@ public interface BaseService<T, K> {
 	/**
 	 * 选择性的修改记录, 返回修改的记录数
 	 */
-	public Integer modefySelective(T record);
+	public Integer modifySelective(T record);
 
 	/**
 	 * 插入记录, 返回插入记录数(0 or 1)

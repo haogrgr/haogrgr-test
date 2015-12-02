@@ -101,9 +101,9 @@ public abstract class BaseServiceSupport<T, K> implements BaseService<T, K> {
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-	public Integer modefySelective(T record) {
+	public Integer modifySelective(T record) {
 		Objects.requireNonNull(record);
-		Integer update = getMapper().modefySelective(record);
+		Integer update = getMapper().modifySelective(record);
 		return update;
 	}
 
