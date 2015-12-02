@@ -20,7 +20,7 @@ public class TestServiceImpl extends BaseServiceSupport<TestModel, Integer> impl
 	@Transactional(propagation = Propagation.NEVER)
 	public void testExp() {
 		TestModel obj = new TestModel();
-		testMapper.insert(obj);
+		testMapper.save(obj);
 	}
 
 	@Override

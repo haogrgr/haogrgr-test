@@ -18,87 +18,114 @@ import com.haogrgr.test.pojo.PageInfo;
  * @date 2015年12月1日 下午4:49:35 
  * 
  * @param <T> Model类型
- * @param <PK> 主键类型
+ * @param <K> 主键类型
  */
-public abstract class BaseServiceSupport<T, PK> implements BaseService<T, PK> {
+public abstract class BaseServiceSupport<T, K> implements BaseService<T, K> {
 
 	/**
 	 * Spring4以上版本可以使用泛型注入
 	 */
-	public abstract BaseMapper<T, PK> getMapper();
+	public abstract BaseMapper<T, K> getMapper();
 
+	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public T findById(PK pk) {
-		Objects.requireNonNull(pk, "主键为空");
-		T record = getMapper().findById(pk);
+	public T getById(K id) {
+		Objects.requireNonNull(id, "主键为空");
+		T record = getMapper().getById(id);
 		return record;
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public <M> PageInfo<M> findByPage(PageInfo<M> page) {
+	public List<T> getByIds(List<K> ids) {
+		Assert.isTrue(Objects.requireNonNull(ids).size() == 0, "ids不能为空");
+		return getMapper().getByIds(ids);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<T> getByPojo(T pojo) {
+		Objects.requireNonNull(pojo);
+		return getMapper().getByPojo(pojo);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public <M> PageInfo<M> getByPage(PageInfo<M> page) {
 		Objects.requireNonNull(page);
 
-		List<M> rows = getMapper().findByPage(page);
+		List<M> rows = getMapper().getByPageList(page);
 		page.setRows(rows);
 
-		Integer total = getMapper().findByPageCount(page);
+		Integer total = getMapper().getByPageCount(page);
 		page.setTotal(total);
 
 		return page;
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public <M> List<M> findByPageList(PageInfo<M> page) {
+	public <M> List<M> getByPageList(PageInfo<M> page) {
 		Objects.requireNonNull(page);
-		List<M> rows = getMapper().findByPage(page);
+		List<M> rows = getMapper().getByPageList(page);
 		return rows;
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public <M> Integer findByPageCount(PageInfo<M> page) {
+	public <M> Integer getByPageCount(PageInfo<M> page) {
 		Objects.requireNonNull(page);
-		Integer total = getMapper().findByPageCount(page);
+		Integer total = getMapper().getByPageCount(page);
 		return total;
 	}
 
-	public List<T> load(List<PK> pks) {
-		Assert.isTrue(Objects.requireNonNull(pks).size() == 0, "pks不能为空");
-		return getMapper().load(pks);
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<T> getAll() {
+		return getMapper().getAll();
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Integer getAllCount() {
+		return getMapper().getAllCount();
+	}
+
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-	public Integer update(T record) {
+	public Integer modify(T record) {
 		Objects.requireNonNull(record);
-		Integer update = getMapper().update(record);
+		Integer update = getMapper().modify(record);
 		return update;
 	}
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<T> all() {
-		return getMapper().all();
-	}
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public Integer count() {
-		return getMapper().count();
-	}
-
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-	public Integer insert(T record) {
+	public Integer modefySelective(T record) {
 		Objects.requireNonNull(record);
-		Integer insert = getMapper().insert(record);
+		Integer update = getMapper().modefySelective(record);
+		return update;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+	public Integer save(T record) {
+		Objects.requireNonNull(record);
+		Integer insert = getMapper().save(record);
 		return insert;
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-	public Integer inserts(List<T> records) {
+	public Integer saveBatch(List<T> records) {
 		Assert.isTrue(Objects.requireNonNull(records).size() == 0, "records不能为空");
-		Integer inserts = getMapper().inserts(records);
+		Integer inserts = getMapper().saveBatch(records);
 		return inserts;
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-	public Integer inserts(List<T> records, int betchSize) {
+	public Integer saveBatch(List<T> records, int betchSize) {
 		Assert.isTrue(betchSize > 0, "betchSize不能小于0");
 		Assert.isTrue(Objects.requireNonNull(records).size() == 0, "records不能为空");
 
@@ -115,27 +142,29 @@ public abstract class BaseServiceSupport<T, PK> implements BaseService<T, PK> {
 				for (int j = i * betchSize; j < end && j < records.size(); j++) {
 					list.add(records.get(j));
 				}
-				inserts = inserts + getMapper().inserts(list);
+				inserts = inserts + getMapper().saveBatch(list);
 			}
 		}
 		else {//直接插入
-			inserts = getMapper().inserts(records);
+			inserts = getMapper().saveBatch(records);
 		}
 		return inserts;
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-	public Integer delete(PK pk) {
-		Objects.requireNonNull(pk);
-		Integer delete = getMapper().delete(pk);
-		return delete;
+	public Integer delById(K id) {
+		Objects.requireNonNull(id);
+		Integer del = getMapper().delById(id);
+		return del;
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-	public Integer deletes(List<PK> pks) {
-		Assert.isTrue(Objects.requireNonNull(pks).size() == 0, "pks不能为空");
-		Integer deletes = getMapper().deletes(pks);
-		return deletes;
+	public Integer delByIds(List<K> ids) {
+		Assert.isTrue(Objects.requireNonNull(ids).size() == 0, "ids不能为空");
+		Integer dels = getMapper().delByIds(ids);
+		return dels;
 	}
 
 }

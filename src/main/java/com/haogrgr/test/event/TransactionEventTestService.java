@@ -22,7 +22,7 @@ public class TransactionEventTestService {
 	public void addTestModel() {
 		TestModel model = new TestModel();
 		model.setName("haogrgr");
-		mapper.insert(model);
+		mapper.save(model);
 
 		//如果model没有继承ApplicationEvent, 则内部会包装为PayloadApplicationEvent
 		//对于@TransactionalEventListener, 会在事务提交后才执行Listener处理逻辑.
