@@ -38,7 +38,7 @@ public abstract class BaseServiceSupport<T, K> implements BaseService<T, K> {
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<T> getByIds(List<K> ids) {
-		Assert.isTrue(Objects.requireNonNull(ids).size() == 0, "ids不能为空");
+		Assert.isTrue(Objects.requireNonNull(ids).size() > 0, "ids不能为空");
 		return getMapper().getByIds(ids);
 	}
 
@@ -118,7 +118,7 @@ public abstract class BaseServiceSupport<T, K> implements BaseService<T, K> {
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public Integer saveBatch(List<T> records) {
-		Assert.isTrue(Objects.requireNonNull(records).size() == 0, "records不能为空");
+		Assert.isTrue(Objects.requireNonNull(records).size() > 0, "records不能为空");
 		Integer inserts = getMapper().saveBatch(records);
 		return inserts;
 	}
@@ -127,7 +127,7 @@ public abstract class BaseServiceSupport<T, K> implements BaseService<T, K> {
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public Integer saveBatch(List<T> records, int betchSize) {
 		Assert.isTrue(betchSize > 0, "betchSize不能小于0");
-		Assert.isTrue(Objects.requireNonNull(records).size() == 0, "records不能为空");
+		Assert.isTrue(Objects.requireNonNull(records).size() > 0, "records不能为空");
 
 		Integer inserts = 0;
 		if (records.size() > betchSize) {//分页批量插入
@@ -162,7 +162,7 @@ public abstract class BaseServiceSupport<T, K> implements BaseService<T, K> {
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public Integer delByIds(List<K> ids) {
-		Assert.isTrue(Objects.requireNonNull(ids).size() == 0, "ids不能为空");
+		Assert.isTrue(Objects.requireNonNull(ids).size() > 0, "ids不能为空");
 		Integer dels = getMapper().delByIds(ids);
 		return dels;
 	}

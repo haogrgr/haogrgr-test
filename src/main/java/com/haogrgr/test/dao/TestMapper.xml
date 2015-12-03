@@ -13,59 +13,91 @@
         id, name, age, modify_time, create_time
     </sql>
     
-    <sql id="findByPageSql" >
-        select a.* from test a where 1=1 
-        <if test="paramMap.id != null" >
-            and a.id = #{paramMap.id,jdbcType=INTEGER}
-        </if>
-        <if test="paramMap.name != null" >
-            and a.name = #{paramMap.name,jdbcType=VARCHAR}
-        </if>
-        <if test="paramMap.age != null" >
-            and a.age = #{paramMap.age,jdbcType=INTEGER}
-        </if>
-        order by a.id desc
-    </sql>
-    
-    <select id="findByPage" resultMap="BaseResultMap" parameterType="PageInfo" >
-        select temp.* from (
-        <include refid="findByPageSql" />
-        ) temp limit #{begin}, #{end}
-    </select>
-    
-    <select id="findByPageCount" resultType="java.lang.Integer" parameterType="PageInfo" >
-        select count(1) from (
-        <include refid="findByPageSql" />
-        ) temp 
-    </select>
-    
-    <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    <select id="getById" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
         select 
         <include refid="Base_Column_List" />
         from test
         where id = #{id,jdbcType=INTEGER}
     </select>
     
-    <select id="load" resultMap="BaseResultMap" >
+    <select id="getByIds" resultMap="BaseResultMap" >
         select 
         <include refid="Base_Column_List" />
         from test where id in 
-        <foreach collection="ids" item="item" open="(" separator="," close=")" >
+        <foreach collection="list" item="item" open="(" separator="," close=")" >
             #{item}
         </foreach>
     </select>
     
-    <select id="all" resultMap="BaseResultMap" >
+    <select id="getByPojo" resultMap="BaseResultMap" parameterType="com.haogrgr.test.model.TestModel" >
+        select 
+        <include refid="Base_Column_List" />
+        from test 
+        <where >
+            <if test="id != null" >
+                and id = #{id,jdbcType=INTEGER}
+            </if>
+            <if test="name != null" >
+                and name = #{name,jdbcType=VARCHAR}
+            </if>
+            <if test="age != null" >
+                and age = #{age,jdbcType=INTEGER}
+            </if>
+            <if test="modifyTime != null" >
+                and modify_time = #{modifyTime,jdbcType=TIMESTAMP}
+            </if>
+            <if test="createTime != null" >
+                and create_time = #{createTime,jdbcType=TIMESTAMP}
+            </if>
+        </where>
+    </select>
+    
+    <sql id="getByPageSql" >
+        select a.* from test a where 1=1 
+        <if test="params.id != null" >
+            and a.id = #{params.id,jdbcType=INTEGER}
+        </if>
+        <if test="params.name != null" >
+            and a.name = #{params.name,jdbcType=VARCHAR}
+        </if>
+        <if test="params.age != null" >
+            and a.age = #{params.age,jdbcType=INTEGER}
+        </if>
+        order by a.id desc
+    </sql>
+    
+    <select id="getByPageList" resultMap="BaseResultMap" parameterType="PageInfo" >
+        select temp.* from (
+        <include refid="getByPageSql" />
+        ) temp limit #{offset}, #{pageSize}
+    </select>
+    
+    <select id="getByPageCount" resultType="java.lang.Integer" parameterType="PageInfo" >
+        select count(1) from (
+        <include refid="getByPageSql" />
+        ) temp 
+    </select>
+    
+    <select id="getAll" resultMap="BaseResultMap" >
         select 
         <include refid="Base_Column_List" />
         from test
     </select>
     
-    <select id="count" resultType="java.lang.Integer" >
+    <select id="getAllCount" resultType="java.lang.Integer" >
         select count(1) from test
     </select>
     
-    <update id="update" parameterType="com.haogrgr.test.model.TestModel" >
+    <update id="modify" parameterType="com.haogrgr.test.model.TestModel" >
+        update test
+        set name = #{name,jdbcType=VARCHAR},
+            age = #{age,jdbcType=INTEGER},
+            modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+            create_time = #{createTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <update id="modifySelective" parameterType="com.haogrgr.test.model.TestModel" >
         update test
         <set >
             <if test="name != null" >
@@ -84,14 +116,14 @@
         where id = #{id,jdbcType=INTEGER}
     </update>
     
-    <insert id="insert" parameterType="com.haogrgr.test.model.TestModel" useGeneratedKeys="true" keyProperty="id" >
+    <insert id="save" parameterType="com.haogrgr.test.model.TestModel" useGeneratedKeys="true" keyProperty="id" >
         insert into test (name, age, modify_time, 
             create_time)
         values (#{name,jdbcType=VARCHAR}, #{age,jdbcType=INTEGER}, #{modifyTime,jdbcType=TIMESTAMP}, 
             #{createTime,jdbcType=TIMESTAMP})
     </insert>
     
-    <insert id="inserts" parameterType="java.util.List" >
+    <insert id="saveBatch" parameterType="java.util.List" >
         insert into test (name, age, modify_time, create_time)
         values
         <foreach collection="list" item="item" separator="," >
@@ -99,14 +131,14 @@
         </foreach>
     </insert>
     
-    <delete id="delete" parameterType="java.lang.Integer" >
+    <delete id="delById" parameterType="java.lang.Integer" >
         delete from test
         where id = #{id,jdbcType=INTEGER}
     </delete>
     
-    <delete id="deletes" >
+    <delete id="delByIds" >
         delete from test where id in 
-        <foreach collection="ids" item="item" open="(" separator="," close=")" >
+        <foreach collection="list" item="item" open="(" separator="," close=")" >
             #{item}
         </foreach>
     </delete>

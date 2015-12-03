@@ -1,31 +1,19 @@
 package com.haogrgr.test.server;
 
-import javax.annotation.Resource;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.haogrgr.test.dao.BaseMapper;
 import com.haogrgr.test.dao.TestMapper;
 import com.haogrgr.test.model.TestModel;
+import javax.annotation.Resource;
+import org.springframework.stereotype.Service;
 
 @Service
 public class TestServiceImpl extends BaseServiceSupport<TestModel, Integer> implements TestService {
 
-	@Resource
-	private TestMapper testMapper;
+    @Resource
+    private TestMapper testMapper;
 
-	@Override
-	@Transactional(propagation = Propagation.NEVER)
-	public void testExp() {
-		TestModel obj = new TestModel();
-		testMapper.save(obj);
-	}
-
-	@Override
-	public BaseMapper<TestModel, Integer> getMapper() {
-		return testMapper;
-	}
-
+    @Override
+    public BaseMapper<TestModel, Integer> getMapper() {
+        return testMapper;
+    }
 }

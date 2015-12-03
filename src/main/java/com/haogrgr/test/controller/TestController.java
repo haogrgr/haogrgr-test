@@ -24,7 +24,6 @@ public class TestController {
 
 	@RequestMapping("/index")
 	public String test() {
-		testService.testExp();
 		return null;
 	}
 
