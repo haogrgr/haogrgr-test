@@ -515,6 +515,14 @@
 		</dependency>
 		-->
 		
+		<!-- mybatis扩展, 包含一些不错的插件  
+		<dependency>
+		    <groupId>com.ext-ext</groupId>
+		    <artifactId>mybatis-ext</artifactId>
+		    <version>0.0.3</version>
+		</dependency>
+		-->
+		
 		<!-- multithread context -->
 		<dependency>
 			<groupId>com.alibaba</groupId>

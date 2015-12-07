@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:cache="http://www.springframework.org/schema/cache"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
-			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
-			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
-			http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
-			http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.1.xsd">
-	
-	<!-- 加载属性文件 -->
-	<context:property-placeholder location="classpath:config.properties" />
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:cache="http://www.springframework.org/schema/cache" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+			http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+			http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.2.xsd
+			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.2.xsd">
 	
 	<!-- 开启注解处理器 -->
 	<context:annotation-config />
 	
+	<!-- 加载属性文件 -->
+	<context:property-placeholder location="classpath:config.properties" />
+	
 	<!-- 定义扫描根路径为com.haogrgr.test,不使用默认的扫描方式 -->
 	<context:component-scan base-package="com.haogrgr.test" use-default-filters="false">
-		<!-- 扫描符合@Service @Repository @Component的类 -->
 		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
 		<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository" />
 		<context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />
@@ -73,6 +73,11 @@
 	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
 	
 	<aop:aspectj-autoproxy proxy-target-class="true" />
+	
+	<!-- @Scheduled 和   @Async  -->
+	<task:annotation-driven executor="taskExecutor" scheduler="taskScheduler" />
+	<task:executor id="taskExecutor" pool-size="1-8" keep-alive="600" queue-capacity="100" rejection-policy="CALLER_RUNS" />
+	<task:scheduler id="taskScheduler" pool-size="4" />
 	
 	<bean id="appConfig" class="com.haogrgr.test.util.AppConfig">
 		<property name="configLocation" value="classpath:/META-INF/druid-filter.properties" />
