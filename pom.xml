@@ -19,6 +19,7 @@
 		<evn>dev</evn>
 
 		<spring.version>4.2.3.RELEASE</spring.version>
+		<log4j.version>2.5</log4j.version>
 	</properties>
 
 	<repositories>
@@ -374,32 +375,32 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.4.1</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.4.1</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>2.4.1</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-jcl</artifactId>
-			<version>2.4.1</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-jul</artifactId>
-			<version>2.4.1</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-web</artifactId>
-			<version>2.4.1</version>
+			<version>${log4j.version}</version>
 			<scope>runtime</scope>
 		</dependency>
         
