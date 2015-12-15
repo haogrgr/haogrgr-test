@@ -23,13 +23,19 @@
 	<aop:aspectj-autoproxy proxy-target-class="true" />
 	<bean class="com.haogrgr.test.interceptor.ResponseBodyInterceptor" />
 	
-	<!-- 默认的注解映射的支持 -->
+	<!-- 注解驱动 -->
 	<mvc:annotation-driven>
 		<mvc:message-converters register-defaults="true">
+			<!-- 自定义json中时间的格式 -->
 			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
 				<property name="objectMapper">
 					<bean class="com.haogrgr.test.util.CustomObjectMapper" />
 				</property>
+			</bean>
+			<!-- @ResponseBody注解的方法直接返回字符串时, 中文默认采用ISO-8859-1编码, 会乱码 -->
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<constructor-arg name="defaultCharset" value="UTF-8" />
+				<property name="writeAcceptCharset" value="false" />
 			</bean>
 		</mvc:message-converters>
 		<mvc:argument-resolvers>

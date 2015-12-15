@@ -7,12 +7,9 @@ import javax.validation.constraints.NotNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.haogrgr.test.main.Test;
-import com.haogrgr.test.pojo.PageInfo;
 import com.haogrgr.test.server.TestService;
 
 @Controller
@@ -27,16 +24,16 @@ public class TestController {
 		return null;
 	}
 
-	@RequestMapping("/json")
-	public @ResponseBody Object jsontest(@RequestBody PageInfo<Test> pageInfo) {
-		System.out.println(pageInfo.getTotal());
-		return pageInfo;
+	@RequestMapping(path = "/json")
+	public @ResponseBody Object jsontest() {
+		System.out.println("xxx");
+		return "呵呵";
 	}
 
-	@RequestMapping("/json2")
-	public @ResponseBody Object jsontest2(PageInfo<Test> pageInfo) {
-		System.out.println(pageInfo.getTotal());
-		return pageInfo;
+	@Json("/json2")
+	public @ResponseBody Object jsontest2() {
+		System.out.println("xxx");
+		return "呵呵";
 	}
 
 	@RequestMapping("/valid")
