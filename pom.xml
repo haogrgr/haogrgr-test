@@ -18,7 +18,7 @@
 		<!-- 通过{环境变量}+{build/resources配置}实现开发环境和生产环境配置文件的切换 -->
 		<evn>dev</evn>
 
-		<spring.version>4.2.3.RELEASE</spring.version>
+		<spring.version>4.2.4.RELEASE</spring.version>
 		<log4j.version>2.5</log4j.version>
 	</properties>
 
@@ -144,7 +144,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>5.0.4.Final</version>
+			<version>5.0.6.Final</version>
 		</dependency>
 		-->
 		
