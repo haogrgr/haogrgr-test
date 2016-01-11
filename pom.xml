@@ -186,7 +186,6 @@
 			<version>5.2.2.Final</version>
 		</dependency>
 		
-		
 		<!-- jsr-107 javax.cache api -->
 		<dependency>
 			<groupId>javax.cache</groupId>
@@ -285,12 +284,13 @@
 			<artifactId>commons-dbcp2</artifactId>
 			<version>2.1.1</version>
 		</dependency>
-				
+		
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid</artifactId>
 			<version>1.0.16</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
@@ -302,6 +302,13 @@
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
 			<version>2.8.0</version>
+		</dependency>
+		
+		<!-- redisson -->
+		<dependency>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson</artifactId>
+			<version>2.2.5</version>
 		</dependency>
 		
 		<!-- spring-data-redis1.6.0.M1 dependency jedis2.7.2 
@@ -365,7 +372,7 @@
 			<artifactId>orika-core</artifactId>
 			<version>1.4.6</version>
 		</dependency>
-
+		
 		<!-- log4j -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -427,6 +434,7 @@
 		-->
 		
 		<!-- just for fun -->
+		
 		<!-- 
 		<dependency>
 			<groupId>com.googlecode.xmemcached</groupId>
@@ -456,22 +464,6 @@
 			<groupId>com.alibaba</groupId>
 			<artifactId>dubbo</artifactId>
 			<version>2.5.3</version>
-		</dependency>
-		-->
-		
-		<!-- redis client --> 
-		<dependency>
-			<groupId>org.redisson</groupId>
-			<artifactId>redisson</artifactId>
-			<version>2.2.5</version>
-		</dependency>
-		
-		
-		<!-- spark 
-		<dependency>
-		    <groupId>com.sparkjava</groupId>
-		    <artifactId>spark-core</artifactId>
-		    <version>2.3</version>
 		</dependency>
 		-->
 		
@@ -531,20 +523,20 @@
 		</dependency>
 		-->
 		
+		<!-- Feature toggles 
+		<dependency>
+			<groupId>org.togglz</groupId>
+			<artifactId>togglz-core</artifactId>
+			<version>2.2.0.Final</version>
+		</dependency>
+		-->	
+		
 		<!-- multithread context -->
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>multithread.context</artifactId>
 			<version>1.2.0</version>
 		</dependency>
-		
-		<!-- Feature toggles -->
-		<dependency>
-			<groupId>org.togglz</groupId>
-			<artifactId>togglz-core</artifactId>
-			<version>2.2.0.Final</version>
-		</dependency>
-		
 	</dependencies>
 
 	<build>
