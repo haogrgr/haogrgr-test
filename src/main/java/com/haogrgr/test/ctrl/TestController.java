@@ -1,4 +1,4 @@
-package com.haogrgr.test.controller;
+package com.haogrgr.test.ctrl;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;

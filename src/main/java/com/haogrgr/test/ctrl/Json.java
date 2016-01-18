@@ -1,4 +1,4 @@
-package com.haogrgr.test.controller;
+package com.haogrgr.test.ctrl;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

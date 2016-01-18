@@ -1,4 +1,4 @@
-package com.haogrgr.test.controller;
+package com.haogrgr.test.ctrl;
 
 import java.lang.reflect.Method;
 import java.util.function.Function;
