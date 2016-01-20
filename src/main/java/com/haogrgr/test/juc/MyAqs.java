@@ -175,7 +175,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			) {
 				//1.1.非首节点(意味着不需要唤醒后继节点)
 				//2.1.pred状态为SIGNAL, 意味着不用修改状态为SIGNAL
-				//2.2.pred状态不为SIGNAL, 则修改为SIGNAL, 标记后续节点要唤醒.
+				//2.2.pred状态不为SIGNAL, 则修改为SIGNAL, 标记后续节点要唤醒, 因为走到这里, 表示node不为tail(前面的if判断).
 				//3.1.pred.thread不为空(为空就表示pred被取消了或成head了, 这时就要唤醒后继了)
 				//满足1,2,3表示, 后继的节点不需要唤醒, 只要更新下队列, 避免多余的唤醒
 
@@ -189,7 +189,9 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 				//1.首节点->要唤醒node.next
 				//2.修改为pred状态为SIGNAL失败(可能是prev被(成head然后realease了)或(cancel)了) -> 唤醒吧
 				//3.pred.thread为空(为空就表示pred被取消了或成head了, 这时就要唤醒后继了) -> 唤醒吧
-				//node的出队, 交给unparkSuccessor
+				
+				//node的出队, 交给node.next = node, unparkSuccessor里面unpark, 然后后面的节点会将node出队列, 
+				//走到这里说明pred的pred要么为null(head), 要么无效
 				unparkSuccessor(node);
 			}
 
