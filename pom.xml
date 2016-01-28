@@ -537,6 +537,14 @@
 			<artifactId>multithread.context</artifactId>
 			<version>1.2.0</version>
 		</dependency>
+		
+		<!-- atomikos 
+		<dependency>
+		    <groupId>com.atomikos</groupId>
+		    <artifactId>transactions-jdbc</artifactId>
+		    <version>4.0.0M4</version>
+		</dependency>
+		-->
 	</dependencies>
 
 	<build>
@@ -568,6 +576,29 @@
 					<target>${java.version}</target>
 				</configuration>
 			</plugin>
+			
+			<!-- 生成可执行jar, 三方依赖解压打入包中 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.4.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>com.haogrgr.test.main.StringEscapeTest</mainClass>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			-->
 		</plugins>
 	</build>
 </project>
