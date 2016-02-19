@@ -105,7 +105,7 @@
 		<dependency>
 	        <groupId>org.springframework.session</groupId>
 	        <artifactId>spring-session</artifactId>
-	        <version>1.0.2.RELEASE</version>
+	        <version>1.1.0.RC1</version>
 	    </dependency>
 
 		<!-- spring statemachine 
@@ -132,12 +132,12 @@
 		<dependency>
 			<groupId>org.mybatis</groupId>
 			<artifactId>mybatis</artifactId>
-			<version>3.3.0</version>
+			<version>3.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mybatis</groupId>
 			<artifactId>mybatis-spring</artifactId>
-			<version>1.2.3</version>
+			<version>1.2.4</version>
 		</dependency>
 		
 		<!-- hibernate 
@@ -308,7 +308,7 @@
 		<dependency>
 			<groupId>org.redisson</groupId>
 			<artifactId>redisson</artifactId>
-			<version>2.2.5</version>
+			<version>2.2.8</version>
 		</dependency>
 		
 		<!-- spring-data-redis1.6.0.M1 dependency jedis2.7.2 
@@ -377,7 +377,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.12</version>
+			<version>1.7.16</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>

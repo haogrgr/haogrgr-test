@@ -123,7 +123,7 @@
             #{createTime,jdbcType=TIMESTAMP})
     </insert>
     
-    <insert id="saveBatch" parameterType="java.util.List" >
+    <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" >
         insert into test (name, age, modify_time, create_time)
         values
         <foreach collection="list" item="item" separator="," >
