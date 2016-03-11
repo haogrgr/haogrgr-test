@@ -2,7 +2,6 @@ package com.haogrgr.test.server;
 
 import java.util.List;
 
-import com.haogrgr.test.dao.BaseMapper;
 import com.haogrgr.test.pojo.PageInfo;
 
 /**
@@ -15,11 +14,6 @@ import com.haogrgr.test.pojo.PageInfo;
  * @param <K> 主键类型
  */
 public interface BaseService<T, K> {
-
-	/**
-	 * 获取底层对应的Mapper类
-	 */
-	public BaseMapper<T, K> getMapper();
 
 	/**
 	 * 根据主键查找记录, 返回对应记录
