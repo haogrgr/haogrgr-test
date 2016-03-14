@@ -26,7 +26,7 @@ public interface BaseService<T, K> {
 	public List<T> getByIds(List<K> ids);
 
 	/**
-	 * 根据pojo熟悉查找记录, 返回对应记录
+	 * 根据pojo属性查找记录, 返回对应记录
 	 */
 	public List<T> getByPojo(T pojo);
 
