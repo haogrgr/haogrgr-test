@@ -20,20 +20,20 @@ public class SpringAopUtils {
 	public static void main(String[] args) {
 		//需要被代理的类
 		TobeProxy bean = new TobeProxy();
-		
+
 		//组合Pointcut(拦截点)和Advisor(附加逻辑)
 		DefaultPointcutAdvisor advisor = new DefaultPointcutAdvisor(new SimpleDynamicPointcut(), new SimpleAdvice());
-		
+
 		//代理工厂
 		ProxyFactory factory = new ProxyFactory();
 		factory.addAdvisor(advisor);
 		factory.setTarget(bean);
-		
-		TobeProxy proxy = (TobeProxy)factory.getProxy();
+
+		TobeProxy proxy = (TobeProxy) factory.getProxy();
 		proxy.foo(1);
 		proxy.foo(100);//符合拦截条件,被拦截
 		proxy.bar();
-		
+
 	}
 
 	public static class TobeProxy {
@@ -71,7 +71,7 @@ public class SpringAopUtils {
 	public static class SimpleDynamicPointcut extends DynamicMethodMatcherPointcut {
 
 		@Override
-		public boolean matches(Method method, Class<?> targetClass, Object[] args) {
+		public boolean matches(Method method, Class<?> targetClass, Object... args) {
 			if ("foo".equals(method.getName()) && ((int) args[0]) == 100) {
 				return true;
 			}
