@@ -612,6 +612,7 @@
 				<configuration>
 					<archive>
 						<manifest>
+<!-- 							<classpathPrefix>lib/</classpathPrefix> -->
 							<addClasspath>true</addClasspath>
 							<mainClass>xxxx.main.class.Main</mainClass>
 						</manifest>
