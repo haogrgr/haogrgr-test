@@ -31,7 +31,7 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-		
+
 		<repository>
 			<id>spring-snapshots</id>
 			<name>Spring Snapshots</name>
@@ -41,27 +41,31 @@
 			</snapshots>
 		</repository>
 		
-<!-- 		<repository> -->
-<!-- 			<id>central</id> -->
-<!-- 			<snapshots> -->
-<!-- 				<enabled>false</enabled> -->
-<!-- 			</snapshots> -->
-<!-- 			<name>Public Repositories</name> -->
-<!-- 			<url>http://maven.oschina.net/content/groups/public/</url> -->
-<!-- 		</repository> -->
+		<!-- 
+		<repository>
+			<id>central</id>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<name>Public Repositories</name>
+			<url>http://maven.oschina.net/content/groups/public/</url>
+		</repository>
+		 -->
 	</repositories>
 
 	<pluginRepositories>
-<!-- 		<pluginRepository> -->
-<!-- 			<id>central</id> -->
-<!-- 			<snapshots> -->
-<!-- 				<enabled>false</enabled> -->
-<!-- 			</snapshots> -->
-<!-- 			<name>Public Repositories</name> -->
-<!-- 			<url>http://maven.oschina.net/content/groups/public/</url> -->
-<!-- 		</pluginRepository> -->
+		<!-- 
+		<pluginRepository>
+			<id>central</id>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<name>Public Repositories</name>
+			<url>http://maven.oschina.net/content/groups/public/</url>
+		</pluginRepository>
+		 -->
 	</pluginRepositories>
-	
+
 	<dependencies>
 		<!-- spring springframework -->
 		<dependency>
@@ -103,10 +107,10 @@
 		
 		<!-- spring session -->
 		<dependency>
-	        <groupId>org.springframework.session</groupId>
-	        <artifactId>spring-session</artifactId>
-	        <version>1.1.0.RELEASE</version>
-	    </dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session</artifactId>
+			<version>1.1.0.RELEASE</version>
+		</dependency>
 
 		<!-- spring statemachine 
 		<dependency>
@@ -189,8 +193,8 @@
 		<!-- jsr-107 javax.cache api -->
 		<dependency>
 			<groupId>javax.cache</groupId>
-		    <artifactId>cache-api</artifactId>
-		    <version>1.0.0</version>
+			<artifactId>cache-api</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 		
 		<!-- http client -->
@@ -284,13 +288,13 @@
 			<artifactId>commons-dbcp2</artifactId>
 			<version>2.1.1</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid</artifactId>
 			<version>1.0.18</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
@@ -413,13 +417,13 @@
 		</dependency>
         
         <!-- test -->
-        <dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
+		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<version>3.4</version>
@@ -600,6 +604,41 @@
 				</executions>
 			</plugin>
 			-->
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>xxxx.main.class.Main</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<descriptors>
+						<descriptor>src/main/assembly/assembly.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>
