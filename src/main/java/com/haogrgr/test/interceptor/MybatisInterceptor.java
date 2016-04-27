@@ -10,7 +10,7 @@ import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
 
-@Intercepts({ @Signature(type = StatementHandler.class, method = "prepare", args = { Connection.class }) })
+@Intercepts({ @Signature(type = StatementHandler.class, method = "prepare", args = { Connection.class, Integer.class }) })
 public class MybatisInterceptor implements Interceptor {
 
 	@Override

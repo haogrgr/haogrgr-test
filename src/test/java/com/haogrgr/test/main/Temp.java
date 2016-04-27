@@ -1,11 +1,13 @@
 package com.haogrgr.test.main;
 
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 public class Temp {
 
 	public static void main(String[] args) throws Exception {
-		for (int i = 0; i < 0; i++) {
-			System.out.println("xx");
-		}
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring-root.xml");
+		context.close();
+
 	}
 
 }
