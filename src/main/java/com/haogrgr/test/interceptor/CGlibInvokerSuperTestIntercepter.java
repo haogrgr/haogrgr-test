@@ -48,6 +48,7 @@ public class CGlibInvokerSuperTestIntercepter {
 			//思考, 为什么AOP可以实现this调用拦截, 而spring却选择不实现呢?
 			//有可能是因为, 可能this调用的方法并不需要拦截, 但是通过invokeSuper的实现, 一定会走拦截, 
 			//某些场景可能会有问题, 比如拦截请求记录, 通过AOP拦截来记录某一方法外部请求数量, 当这个方法中有this调用, 那么也会走AOP拦截, 如果AOP没有处理好的话, 那么计数可能会错误. 
+			//可能会破坏@Pointcut语义, 比如我本意是这个方法不走拦截, 但是因为其他被拦截的方法内部this调用了这个方法, 那么就会导致原本不应该被拦截的方法走了拦截逻辑. 
 
 		} catch (Throwable e) {
 			e.printStackTrace();
