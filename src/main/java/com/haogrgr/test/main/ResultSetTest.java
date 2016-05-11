@@ -12,11 +12,11 @@ public class ResultSetTest {
     public static void main(String[] args) throws Exception {
         Connection conn = DBToolKit.getConnection();
         
-        PreparedStatement prep = conn.prepareStatement("select * from test2 where 1=1 order by id asc");
+        PreparedStatement prep = conn.prepareStatement("select * from test where 1=1 order by id asc");
         
         ResultSet result = prep.executeQuery();
         
-        result.absolute(2000);
+        result.absolute(2);
         
         Object content = result.getObject("id");
         

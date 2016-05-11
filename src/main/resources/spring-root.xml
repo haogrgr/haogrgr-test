@@ -1,34 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" 
-	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx" 
-	xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop" 
-	xmlns:cache="http://www.springframework.org/schema/cache" xmlns:task="http://www.springframework.org/schema/task"
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:cache="http://www.springframework.org/schema/cache" xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
 			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
 			http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
 			http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.2.xsd
 			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.2.xsd">
-	
-	<!-- 开启注解处理器 -->
+
 	<context:annotation-config />
-	
-	<!-- 加载属性文件 -->
+
 	<context:property-placeholder location="classpath:config.properties" />
-	
-	<!-- 定义扫描根路径为com.haogrgr.test,不使用默认的扫描方式 -->
-	<context:component-scan base-package="com.haogrgr.test" use-default-filters="false">
-		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
-		<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository" />
-		<context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />
-	</context:component-scan>
-	
-	<!-- 配置数据源 -->
-	<bean name="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
-		init-method="init" destroy-method="close">
+
+	<context:component-scan base-package="com.haogrgr.test" />
+
+	<bean name="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
 		<property name="url" value="${db.url}" />
 		<property name="username" value="${db.username}" />
 		<property name="password" value="${db.password}" />
+		<!-- mysql jdbc 6.0的driver改包名了 -->
+		<property name="driverClassName" value="${db.driver.class}" />
 		<property name="initialSize" value="1" />
 		<property name="maxActive" value="50" />
 		<property name="minIdle" value="1" />
@@ -43,8 +33,7 @@
 		<property name="logAbandoned" value="true" />
 		<property name="filters" value="mergeStat" />
 	</bean>
-	
-	<!-- 配置MyBatis -->
+
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="mapperLocations" value="classpath:com/haogrgr/test/dao/**/*Mapper.xml" />
@@ -59,26 +48,24 @@
 			</list>
 		</property>
 	</bean>
-	
+
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.haogrgr.test.dao" />
 		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
 	</bean>
 	
-	<!-- 配置事务管理器 -->
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
-	
+
 	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
-	
+
 	<aop:aspectj-autoproxy proxy-target-class="true" />
 	
-	<!-- @Scheduled 和   @Async  -->
 	<task:annotation-driven executor="taskExecutor" scheduler="taskScheduler" />
 	<task:executor id="taskExecutor" pool-size="1-8" keep-alive="600" queue-capacity="100" rejection-policy="CALLER_RUNS" />
 	<task:scheduler id="taskScheduler" pool-size="4" />
-	
+
 	<bean id="appConfig" class="com.haogrgr.test.util.AppConfig">
 		<property name="configLocation" value="classpath:/META-INF/druid-filter.properties" />
 		<property name="refreshDelaySeconds" value="-1" />

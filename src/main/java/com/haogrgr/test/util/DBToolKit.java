@@ -8,8 +8,15 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp2.BasicDataSourceFactory;
+import com.alibaba.druid.pool.DruidDataSource;
 
+/**
+ * 调试原生JDBC源码用
+ * 
+ * @author tudesheng
+ * @date 2016年5月11日 下午2:11:56
+ *
+ */
 public class DBToolKit {
 
 	private static DataSource datasource = null;
@@ -17,8 +24,18 @@ public class DBToolKit {
 	static {
 		try {
 			Properties propertie = new Properties();
-			propertie.load(DBToolKit.class.getClassLoader().getResourceAsStream("jdbc.properties"));
-			datasource = BasicDataSourceFactory.createDataSource(propertie);
+			propertie.load(DBToolKit.class.getClassLoader().getResourceAsStream("config.properties"));
+
+			DruidDataSource druid = new DruidDataSource();
+			druid.setUrl(propertie.getProperty("db.url"));
+			druid.setUsername(propertie.getProperty("db.username"));
+			druid.setPassword(propertie.getProperty("db.password"));
+			druid.setDriverClassName("com.mysql.cj.jdbc.Driver");
+			druid.setValidationQuery("select 1 from dual");
+			druid.setInitialSize(2);
+			druid.init();
+
+			datasource = druid;
 		} catch (Exception e) {
 			throw new ExceptionInInitializerError(e);
 		}
