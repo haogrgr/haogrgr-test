@@ -6,7 +6,7 @@ import java.util.Objects;
  * Pair
  * 
  * @author desheng.tu
- * @date 2015年12月11日 下午4:28:49 
+ * @since 2015年12月11日 下午4:28:49 
  *
  */
 public class Pair<A, B> {

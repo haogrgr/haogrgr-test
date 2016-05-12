@@ -8,7 +8,7 @@ import java.util.Objects;
  * 自已用的Map工具类, 大部分API参考Guava, 主要是为了没有guava时使用. 主要目的:精简代码
  * 
  * @author desheng.tu
- * @date 2015年7月23日 下午1:32:28
+ * @since 2015年7月23日 下午1:32:28
  *
  */
 public class Maps {

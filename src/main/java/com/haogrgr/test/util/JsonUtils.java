@@ -17,7 +17,7 @@ import com.haogrgr.test.model.TestModel;
  * json 工具类, 简单的封装, 其实就是吧json的异常换成了运行期异常...
  * 
  * @author desheng.tu
- * @date 2015年8月13日 下午7:03:38 
+ * @since 2015年8月13日 下午7:03:38 
  *
  */
 public class JsonUtils {

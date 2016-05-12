@@ -28,7 +28,7 @@ import ma.glasnost.orika.metadata.Type;
  *   减少hash查找次数
  * 
  * @author desheng.tu
- * @date 2015年12月11日 下午7:07:05 
+ * @since 2015年12月11日 下午7:07:05 
  *
  */
 public class BeanMapperTest {

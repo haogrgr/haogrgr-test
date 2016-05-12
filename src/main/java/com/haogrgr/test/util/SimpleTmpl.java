@@ -10,7 +10,7 @@ import java.util.Objects;
  * 格式: #{变量名} 或者 ${变量名, 默认值}
  * 
  * @author desheng.tu
- * @date 2015年6月23日 下午4:38:05
+ * @since 2015年6月23日 下午4:38:05
  *
  */
 public class SimpleTmpl {

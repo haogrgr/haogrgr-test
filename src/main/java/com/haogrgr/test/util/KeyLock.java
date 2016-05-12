@@ -14,7 +14,7 @@ import java.util.concurrent.Semaphore;
     	2.）可重入
     	3.）公平锁
  * @author WilliamHu
- * @date 2015年5月25日 下午2:27:09
+ * @since 2015年5月25日 下午2:27:09
  * @version  [1.0, 2015年5月25日]
  * @since  version 1.0
  * @param <K>

@@ -8,7 +8,7 @@ import com.haogrgr.test.pojo.PageInfo;
  * 通用Mapper接口
  * 
  * @author desheng.tu
- * @date 2015年12月1日 下午4:15:29 
+ * @since 2015年12月1日 下午4:15:29 
  * 
  * @param <T> 实体类型
  * @param <K> 主键类型

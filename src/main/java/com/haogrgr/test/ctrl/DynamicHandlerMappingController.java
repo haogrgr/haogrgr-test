@@ -20,7 +20,7 @@ import com.haogrgr.test.util.AppContextUtil;
  * spring4.2公开了运行期添加HandlerMapping的方法
  * 
  * @author desheng.tu
- * @date 2015年8月3日 下午3:13:02
+ * @since 2015年8月3日 下午3:13:02
  *
  */
 @Controller

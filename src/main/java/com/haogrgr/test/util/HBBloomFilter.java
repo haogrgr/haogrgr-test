@@ -11,7 +11,7 @@ import com.google.common.hash.Funnel;
  * @see http://ifeve.com/volatile-array-visiblity/
  * 
  * @author desheng.tu
- * @date 2015年8月30日 下午2:05:41
+ * @since 2015年8月30日 下午2:05:41
  * 
  */
 public final class HBBloomFilter<T> {

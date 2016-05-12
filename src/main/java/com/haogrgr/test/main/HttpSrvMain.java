@@ -43,7 +43,7 @@ import org.apache.http.util.EntityUtils;
  * apache http core 官方例子
  * 
  * @author desheng.tu
- * @date 2015年5月18日 上午9:58:41 
+ * @since 2015年5月18日 上午9:58:41 
  *
  */
 public class HttpSrvMain {

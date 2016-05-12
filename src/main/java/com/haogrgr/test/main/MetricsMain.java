@@ -19,7 +19,7 @@ import com.haogrgr.test.util.RandomUtil;
  * @see http://metrics.dropwizard.io/3.1.0/getting-started/
  * 
  * @author desheng.tu
- * @date 2015年9月14日 下午5:34:40
+ * @since 2015年9月14日 下午5:34:40
  *
  */
 public class MetricsMain {

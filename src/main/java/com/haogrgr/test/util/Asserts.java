@@ -4,7 +4,7 @@ package com.haogrgr.test.util;
  * 常用的校验功能
  * 
  * @author desheng.tu
- * @date 2015年6月16日 上午10:01:40
+ * @since 2015年6月16日 上午10:01:40
  *
  */
 public final class Asserts {

@@ -33,7 +33,7 @@ import org.springframework.core.io.Resource;
  * 应用配置属性类, 配置刷新时会向Spring发送AppConfigReloadedEvent事件.
  * 
  * @author desheng.tu
- * @date 2015年8月27日 下午3:37:48
+ * @since 2015年8月27日 下午3:37:48
  *
  */
 public class AppConfig implements ApplicationContextAware, InitializingBean {

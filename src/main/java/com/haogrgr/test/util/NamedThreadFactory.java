@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 方便设置线程名字
  * 
  * @author desheng.tu
- * @date 2015年9月22日 上午11:54:34
+ * @since 2015年9月22日 上午11:54:34
  *
  */
 public class NamedThreadFactory implements ThreadFactory {

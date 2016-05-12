@@ -8,7 +8,7 @@ import sun.misc.Unsafe;
  * 简单的unsafe工具类~~~超简单的那种~~~ 后期会提供更多的包装, 以免后来Unsafe没有了, 要到处改代码~~~netty就自己封装了一套.
  * 
  * @author desheng.tu
- * @date 2015年8月3日 下午3:36:17
+ * @since 2015年8月3日 下午3:36:17
  *
  */
 @SuppressWarnings("restriction")

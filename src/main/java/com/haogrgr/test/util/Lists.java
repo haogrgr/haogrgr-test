@@ -7,7 +7,7 @@ import java.util.LinkedList;
  * 自已用的List工具类, 好吧, 还是超的Guava
  * 
  * @author desheng.tu
- * @date 2015年9月16日 上午10:36:06
+ * @since 2015年9月16日 上午10:36:06
  *
  */
 public class Lists {

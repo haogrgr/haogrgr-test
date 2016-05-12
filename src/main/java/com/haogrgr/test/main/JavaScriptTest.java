@@ -9,7 +9,7 @@ import javax.script.ScriptEngineManager;
  * Java调用js
  * 
  * @author desheng.tu
- * @date 2015年11月2日 上午11:12:17
+ * @since 2015年11月2日 上午11:12:17
  *
  */
 public class JavaScriptTest {

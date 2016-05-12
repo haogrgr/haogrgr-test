@@ -20,7 +20,7 @@ import javax.imageio.ImageIO;
  * from http://blog.csdn.net/ruixue0117/article/details/22829557
  * 
  * @author desheng.tu
- * @date 2015年11月6日 下午3:55:03 
+ * @since 2015年11月6日 下午3:55:03 
  *
  */
 public class VerifyCodes {

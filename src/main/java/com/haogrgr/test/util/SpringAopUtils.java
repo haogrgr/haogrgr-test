@@ -12,7 +12,7 @@ import org.springframework.aop.support.DynamicMethodMatcherPointcut;
 /**
  * 使用Spring AOP相关的类来手动建立代理.
  *
- * @date 2015年3月31日 下午5:14:51
+ * @since 2015年3月31日 下午5:14:51
  * @author https://github.com/stillotherguy/javaopensource/blob/master/src/main/java/com/rabbit/spring/aop/Main.java
  */
 public class SpringAopUtils {
@@ -65,7 +65,7 @@ public class SpringAopUtils {
 	 * 
 	 * 对于的, 有静态的Pointcut, StaticMethodMatcherPointcut类
 	 *
-	 * @date 2015年3月31日 下午4:42:40
+	 * @since 2015年3月31日 下午4:42:40
 	 * @author desheng.tu
 	 */
 	public static class SimpleDynamicPointcut extends DynamicMethodMatcherPointcut {

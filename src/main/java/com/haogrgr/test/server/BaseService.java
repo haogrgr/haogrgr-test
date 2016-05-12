@@ -8,7 +8,7 @@ import com.haogrgr.test.pojo.PageInfo;
  * 通用Service接口
  * 
  * @author desheng.tu
- * @date 2015年12月1日 下午4:39:52 
+ * @since 2015年12月1日 下午4:39:52 
  * 
  * @param <T> Model类型
  * @param <K> 主键类型

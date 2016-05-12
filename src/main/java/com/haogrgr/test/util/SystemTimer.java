@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * @see http://www.blogjava.net/killme2008/archive/2014/09/01/338420.html
  * 
  * @author desheng.tu
- * @date 2015年7月23日 下午7:41:03
+ * @since 2015年7月23日 下午7:41:03
  *
  */
 public class SystemTimer {

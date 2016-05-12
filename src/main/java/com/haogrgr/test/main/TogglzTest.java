@@ -33,7 +33,7 @@
 // * @see http://www.togglz.org/#example
 // * 
 // * @author desheng.tu
-// * @date 2015年12月22日 上午11:00:06 
+// * @since 2015年12月22日 上午11:00:06 
 // *
 // */
 //public class TogglzTest {

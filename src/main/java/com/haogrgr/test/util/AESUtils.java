@@ -15,7 +15,7 @@ import javax.xml.bind.DatatypeConverter;
  * AES加密解密工具类,该工具只依赖JDK
  * 
  * @author desheng.tu
- * @date 2015年4月13日 上午11:48:10
+ * @since 2015年4月13日 上午11:48:10
  */
 public class AESUtils {
 
