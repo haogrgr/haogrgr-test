@@ -7,7 +7,6 @@ public class Temp {
 	public static void main(String[] args) throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring-root.xml");
 		context.close();
-
 	}
 
 }

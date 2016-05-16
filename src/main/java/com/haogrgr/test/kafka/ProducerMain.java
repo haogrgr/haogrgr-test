@@ -11,7 +11,10 @@ public class ProducerMain {
 	public static void main(String[] args) throws Exception {
 		Producer<String, String> producer = getProducer("10.128.8.59:9092,10.128.8.61:9092,10.128.8.62:9092");
 
-		sendMsg(producer, "haogrgr", "1", "hehe");
+		for (int i = 0; i < 1; i++) {
+			sendMsg(producer, "haogrgr", i + "", "heh");
+			Thread.sleep(10);
+		}
 
 		close(producer);
 	}
