@@ -102,10 +102,9 @@ public class KafkaConsumerManager implements InitializingBean {
 					}
 
 					MessageAndMetadata<String, String> next = itr.next();
-					logger.info("收到Kafka消息: {}", next);
-
 					String key = next.key(), value = next.message();
 					info = "[" + next.partition() + ", " + next.offset() + "] [" + key + ", " + value + "]";
+					logger.info("收到Kafka消息: {}", info);
 
 					//业务处理, 业务需要实现幂等
 					handler.consume(key, value);
