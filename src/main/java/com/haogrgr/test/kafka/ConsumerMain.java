@@ -6,14 +6,16 @@ public class ConsumerMain {
 		KafkaConsumerManager consumerManager = new KafkaConsumerManager("10.128.8.57:2181", "group-1", "haogrgr",
 				new KafkaMessageCustomer() {
 					@Override
-					public void consume(String key, String msg) {
+					public void consume(int partition, long offset, String key, String msg) {
 						System.out.println(msg);
+						if (key.equals("5"))
+							throw new RuntimeException("x");
 					}
 				});
 
 		consumerManager.afterPropertiesSet();
 
-		Thread.sleep(100000);
+		Thread.sleep(100000000l);
 
 		consumerManager.shutdown();
 	}
