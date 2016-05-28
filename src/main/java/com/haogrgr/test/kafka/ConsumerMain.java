@@ -3,8 +3,8 @@ package com.haogrgr.test.kafka;
 public class ConsumerMain {
 
 	public static void main(String[] args) throws Exception {
-		KafkaConsumerManager consumerManager = new KafkaConsumerManager("10.128.8.57:2181", "group-1", "haogrgr",
-				new KafkaMessageCustomer() {
+		KafkaMessageConsumer consumerManager = new KafkaMessageConsumer("10.128.8.57:2181", "group-1", "haogrgr",
+				new KafkaMessageHandler() {
 					@Override
 					public void consume(int partition, long offset, String key, String msg) {
 						System.out.println(msg);

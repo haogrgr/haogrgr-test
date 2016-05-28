@@ -32,9 +32,9 @@ import kafka.serializer.StringDecoder;
  * @since 2016年5月15日 下午9:23:18
  *
  */
-public class KafkaConsumerManager implements InitializingBean {
+public class KafkaMessageConsumer implements InitializingBean {
 
-	private static final Logger logger = LoggerFactory.getLogger(KafkaConsumerManager.class);
+	private static final Logger logger = LoggerFactory.getLogger(KafkaMessageConsumer.class);
 
 	private String zkConnect;
 	private String group;
@@ -48,7 +48,7 @@ public class KafkaConsumerManager implements InitializingBean {
 	private KafkaStream<String, String> stream;
 	private ExecutorService executor = Executors.newFixedThreadPool(1);
 
-	private KafkaMessageCustomer handler; //消息处理类, 只有一个consume(key, value)方法.
+	private KafkaMessageHandler handler; //消息处理类, 只有一个consume(key, value)方法.
 
 	private Lock lock = new ReentrantLock();
 	private volatile boolean started = false;
@@ -56,7 +56,7 @@ public class KafkaConsumerManager implements InitializingBean {
 
 	private Map<Integer, Long> offsetMap = new HashMap<>();
 
-	public KafkaConsumerManager(String zkConnect, String group, String topic, KafkaMessageCustomer handler) {
+	public KafkaMessageConsumer(String zkConnect, String group, String topic, KafkaMessageHandler handler) {
 		this.zkConnect = zkConnect;
 		this.group = group;
 		this.topic = topic;

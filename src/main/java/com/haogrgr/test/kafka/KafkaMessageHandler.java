@@ -7,7 +7,7 @@ package com.haogrgr.test.kafka;
  * @since 2016年5月27日 下午1:58:18
  *
  */
-public interface KafkaMessageCustomer {
+public interface KafkaMessageHandler {
 
 	/**
 	 * 消费kafka消息
