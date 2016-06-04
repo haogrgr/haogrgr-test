@@ -112,6 +112,14 @@
 			<artifactId>spring-session</artifactId>
 			<version>1.2.0.RC2</version>
 		</dependency>
+		
+		<!-- spring-tuple -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tuple</artifactId>
+			<version>1.0.0.RELEASE</version>
+		</dependency>
+		
 
 		<!-- spring statemachine 
 		<dependency>
