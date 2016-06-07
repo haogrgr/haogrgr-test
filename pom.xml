@@ -652,7 +652,7 @@
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka</artifactId>
-			<version>1.0.0.M2</version>
+			<version>1.0.0.RC1</version>
 		</dependency>
 		-->
 
