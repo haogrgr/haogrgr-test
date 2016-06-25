@@ -1,7 +1,6 @@
 package com.haogrgr.test.main;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -13,7 +12,7 @@ import java.util.stream.IntStream;
 public class JDK8GroupByTest {
 
 	public static void main(String[] args) {
-		Map<Long, Optional<Long>> collect = IntStream.range(0, 100).mapToObj(Long::valueOf)
+		Map<Long, Long> collect = IntStream.range(0, 100).mapToObj(Long::valueOf)
 				.collect(Collectors.groupingBy(i -> i, reducing((a, b) -> a)));
 
 		System.out.println(collect);
