@@ -48,7 +48,7 @@ public class KafkaMessageConsumer implements InitializingBean {
 	private KafkaStream<String, String> stream;
 	private ExecutorService executor = Executors.newFixedThreadPool(1);
 
-	private KafkaMessageHandler handler; //消息处理类, 只有一个consume(key, value)方法.
+	private KafkaMessageHandler handler;
 
 	private Lock lock = new ReentrantLock();
 	private volatile boolean started = false;
@@ -67,30 +67,34 @@ public class KafkaMessageConsumer implements InitializingBean {
 	public synchronized void afterPropertiesSet() throws Exception {
 		logger.info("初始化Kafka消费者: {}, {}, {}", zkConnect, group, topic);
 
-		Assert.hasText(zkConnect);
-		Assert.hasText(group);
-		Assert.hasText(topic);
-		Assert.notNull(executor);
-		Assert.notNull(handler);
-
-		if (started) {
-			throw new IllegalArgumentException("不能多次调用afterPropertiesSet方法");
-		}
+		verifyProperties();
 
 		openKafkaStream();
-		started = true;
 
+		started = true;
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					process();
-				} catch (Throwable e) {
+				} catch (Exception e) {
 					logger.error("消费消息出错, 线程停止", e);
 					throw e;
 				}
 			}
 		});
+	}
+
+	/**
+	 * 属性校验
+	 */
+	private void verifyProperties() {
+		Assert.hasText(zkConnect);
+		Assert.hasText(group);
+		Assert.hasText(topic);
+		Assert.notNull(executor);
+		Assert.notNull(handler);
+		Assert.state(!started, "不能多次调用afterPropertiesSet方法");
 	}
 
 	/**
@@ -104,31 +108,33 @@ public class KafkaMessageConsumer implements InitializingBean {
 			while (itr.hasNext()) {
 				lock.lock();
 
-				String info = null;
+				String info = "";
 				try {
-					//这里先lock再判断started, 而shutdown方法是先设置started再lock, 防止处理到一半就shutdown
+					//已调用shutdown方法关闭, 则提交上次的消费位点, 并不处理当前消息, 尽早关闭
 					if (!started) {
-						commitOffset(info, true);//强制提交上次消费的位点
+						commitOffset(info, true);
 						break;
 					}
 
+					//获取消息
 					MessageAndMetadata<String, String> next = itr.next();
 					String key = next.key(), value = next.message();
 					info = "[" + next.partition() + ", " + next.offset() + ", " + key + "]";
-					logger.info("收到Kafka消息: {}", info);
+					logger.info("收到Kafka消息: {} {}", info, value);
 
-					//简单去重
-					if (!checkDuplicateMsg(next.partition(), next.offset())) {
+					//简单去重 + 业务处理
+					if (!checkDuplicateMsg(next.partition(), next.offset(), info)) {
 						boolean handleSuccOrShutdown = handleMessage(next.partition(), next.offset(), key, value, info);
-						if (handleSuccOrShutdown) {//succ
+						if (handleSuccOrShutdown) {//handleSucc : 更新最新进度
 							updateOffsetMap(next.partition(), next.offset());
-						} else {//shutown
+						} else {//Shutdown : 退出
 							return;
 						}
 					}
 
+					//提交消费进度
 					commitOffset(info, false);
-				} catch (Throwable e) {
+				} catch (Exception e) {
 					logger.error("处理消息出错 : " + info, e);
 
 					//重新初始化客户端, 重新消费
@@ -148,25 +154,32 @@ public class KafkaMessageConsumer implements InitializingBean {
 	 * @param key 消息键
 	 * @param value 消息体
 	 * @param info 日志信息
-	 * @return true:处理成功, false:shutdown被调用了
+	 * @return true:处理成功或者跳过处理, false:shutdown被调用了
 	 */
 	private boolean handleMessage(int partition, long offset, String key, String value, String info) {
+		logger.info("准备处理kafka消息: {}", info);
+
+		boolean accept = handler.accept(partition, offset, key, value);
+		if (!accept) {
+			return true;
+		}
+
+		int retryCount = 0;
 		while (started) {
+			retryCount++;
 			try {
 				handler.consume(partition, offset, key, value);
 				return true;
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				logger.error("处理消息出错 : " + info, e);
 
-				if (started) {
-					try {
-						TimeUnit.SECONDS.sleep(reOpenSeconds);
-					} catch (InterruptedException ee) {
-						logger.error("", ee);
-						throw e;
-					}
+				if (retryCount == 3) {
+					logger.info("消费重试三次仍然失败, 插入错误日志: {}", info);
+					handler.handleError(partition, offset, key, value, e);
+					return true;
 				}
-				//retry anyway
+
+				sleepWithStartCheck(reOpenSeconds);
 			}
 		}
 		return false;
@@ -194,9 +207,10 @@ public class KafkaMessageConsumer implements InitializingBean {
 	 * @param offset 消费位点
 	 * @return true:已经消费过
 	 */
-	private boolean checkDuplicateMsg(int partition, long offset) {
+	private boolean checkDuplicateMsg(int partition, long offset, String info) {
 		Long oldOffset = offsetMap.get(partition);
 		if (oldOffset != null && oldOffset.longValue() > offset) {
+			logger.info("忽略重复Kafka消息 : {}", info);
 			return true;
 		}
 		return false;
@@ -213,6 +227,21 @@ public class KafkaMessageConsumer implements InitializingBean {
 	}
 
 	/**
+	 * 睡眠当前线程指定秒数, 每睡眠一秒检查一次启动状态, 防止shutdown时, 不必要的等待, 快速关闭
+	 * 
+	 * @param sleepSeconds sleep秒数
+	 */
+	private void sleepWithStartCheck(long sleepSeconds) {
+		for (int i = 0; started && i < sleepSeconds; i++) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ee) {
+				logger.error("", ee);
+			}
+		}
+	}
+
+	/**
 	 * 错误重试逻辑 : 关闭现有链接, 等待一定时间后, 重新初始化链接, 以便重新消费消息
 	 */
 	private void reOpenKafkaStream() {
@@ -222,13 +251,11 @@ public class KafkaMessageConsumer implements InitializingBean {
 			consumer.shutdown();
 		}
 
-		try {
-			TimeUnit.SECONDS.sleep(reOpenSeconds);
-		} catch (InterruptedException e) {
-			logger.error("", e);
-		}
+		sleepWithStartCheck(reOpenSeconds);
 
-		openKafkaStream();
+		if (started) {
+			openKafkaStream();
+		}
 	}
 
 	/**

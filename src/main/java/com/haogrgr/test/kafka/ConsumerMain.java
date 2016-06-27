@@ -11,6 +11,16 @@ public class ConsumerMain {
 						if (key.equals("5"))
 							throw new RuntimeException("x");
 					}
+
+					@Override
+					public boolean accept(int partition, long offset, String key, String msg) {
+						return false;
+					}
+
+					@Override
+					public void handleError(int partition, long offset, String key, String msg, Throwable e) {
+
+				}
 				});
 
 		consumerManager.afterPropertiesSet();
