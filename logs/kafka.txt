@@ -1,0 +1,184 @@
+http://www.jasongj.com/2015/08/09/KafkaColumn4/
+
+用来设置, zk上没有offset信息或者offset信息不再范围时的动作: 
+props.put("auto.offset.reset", "smallest");
+smallest : 自动重置成最小的offset, 开始消费
+largest : 自动重置成最大的offset
+anything else : 抛异常
+
+StringDecoder decoder = new StringDecoder(null);
+Map<String, Integer> topicCountMap = Maps.of(topic, 1);
+Map<String, List<KafkaStream<String, String>>> consumerMap = consumer.createMessageStreams(topicCountMap,
+decoder, decoder);
+
+topicCountMap表示指定topic使用几个线程消费(不能超过partition数)
+例子: 比如说有3个partition(p1,p2,p3), 两个客户端(c1, c2)
+如果c1, c2的topicCountMap为Maps.of(topic, 2), 
+则, 运行时, 是这样的, c1两个线程, 消费p1,p2, c2一个线程, 消费p3
+
+kafka可以设置为自动提交commit, 也可以选择手动提交commit
+props.put("auto.commit.enable", "false");
+因为每次提交commit都要写kafka, 所以, 尽可能批量提交
+
+生产端, 使用key来作为分区键, 将消息分散到各个partition, 默认的分区规则为, key为long, 则直接 key % partition数, 其他则为
+key.hashcode % partition数.
+
+生产端根据可靠性需要, 可以设置
+request.required.acks = -1
+0:不等待broker的ack, 低延迟, 可能会丢消息
+1:等待leader broker的ack, 中延迟, leader还没有同步到其他broker时, 挂掉, 会丢消息.
+-1: 高延迟, 保证所有in-sync副本都有收到消息, 除非in-sync中的broker都挂了, 才会丢消息.
+
+消费消息时 , 一般是受到消息, 交个业务处理, 那么这里业务处理出异常了, 需要重试, 而hight api没有重新消费的api, 有两个处理方法:
+1.关闭自动commit, 在内存中保持出异常的消息, 然后不断重试业务
+2.关闭自动commit, 关闭客户端, 重新打开.
+
+kafka的消费端group概念, 每条消息同一group中只有一个消费者会处理, 消费者启动时, kafka会指定其消费哪些partition, 
+例如: partition(p1,p2,p3), 客户端c1, c2属于同一个group, 那么, c1会消费p1, p2上的所有消息, c2会消费p3上的消息, 当c2停止后, c1会消费p1,p2,p3上的消息.
+当客户端实例数量大于partition时, 会出现有客户端收不到消息, 所以客户端数量不能大于partition数.
+虽然按照partition来负载均衡, 粒度比较粗, 但是大大的简化了开发.
+kafka使用zk来实现group的概念, 通过zk watch来获取客户端变更的事件, 从而实现rebalance.
+
+0.8.2开始, kafka使用纯Java实现了一个新的client api, 叫kafka-clients
+新的client api更加的灵活, 提供更多的api, 但是, 里面的实现是空的, 坑爹, 所以, 要用新的api, 必须要0.9及以上的版本
+
+kafka.consumer.ConsumerIterator.makeNext()
+如果设置了kafka.consumer.timeout.ms参数, 那么调用ConsumerIterator.hasNext()方法, 会在阻塞了指定时间后, 也没获取到消息时, 会抛出ConsumerTimeoutException异常
+
+源码阅读(0.8.2.2):
+
+(一)概览
+1.调用kafka.Kafka中的main方法启动
+
+2.通过启动参数获取配置文件的路径
+
+3.通过System.getProperty(log4j.configuration)来获取日志配置
+
+4.加载配置文件, 校验配置
+
+5.根据配置启动指标导出任务
+KafkaMetricsReporter.startReporters(serverConfig.props)
+根据配置kafka.metrics.reporters, kafka.metrics.polling.interval.secs
+来初始化指标报告类, 内部是使用的com.yammer.metrics来做指标收集(最新的版本改名为了io.dropwizard.metrics),
+内部提供一个实现kafka.metrics.KafkaCSVMetricsReporter, 内部又实用CsvReporter(com.yammer.metrics提供), 将指标信息写出到指定目录下的csv文件, 顺便注册个MBean
+
+6.调用内部的启动类
+val kafkaServerStartable = new KafkaServerStartable(serverConfig)
+kafkaServerStartable.startup
+
+7.注册shutdown hook, 等待shutdown信号(阻塞), 调用shutdown方法关闭.
+
+
+(二)KafkaServerStartable.startup启动逻辑
+
+1.设置broker状态为Starting, 初始话shutdown信号(CountDownLatch)和状态(isShuttingDown)
+
+2.kafkaScheduler.startup()
+启动kafka调度任务线程池, 方法内部为初始化ScheduledThreadPoolExecutor, 其实就是ScheduledThreadPoolExecutor的一个包装, 注意这里的线程是使用daemon类型
+
+3.zkClient = initZk()初始化zkClient链接
+这里可以设置
+zookeeper.connect=localhost:2181/kafka
+这样的url, kafka会将kafka相关的zk路径建立在/kafka下, 方便一个zk注册多个kafka集群.
+
+4.初始化LogManager
+logManager = createLogManager(zkClient, brokerState)
+logManager.startup()
+
+5.
+
+(二)LogManager初始化逻辑
+
+1.创建LogManager
+logManager = createLogManager(zkClient, brokerState)
+根据配置文件中的配置创建LogConfig对象, 
+然后从zk上面获取所有topic的配置, 合并配置(zk上的配置覆盖文件中的配置)
+AdminUtils.fetchAllTopicConfigs(zkClient).mapValues(LogConfig.fromProps(defaultProps, _))
+从/brokers/topics下获取所有的topic, 然后循环/config/topics/xxx获取xxx的配置(json中config属性)
+根据配置创建CleanerConfig对象
+
+2.new LogManager
+private val logs = new Pool[TopicAndPartition, Log]()
+初始化Log池Pool[并发map的包装]
+
+createAndValidateLogDirs(logDirs)
+创建日志目录
+
+private val dirLocks = lockLogDirs(logDirs)
+初始化文件锁FileLock，内部JDK的文件锁
+
+初始化话OffsetCheckpoint对象(saves out a map of topic/partition=>offsets to a file)
+recoveryPointCheckpoints = logDirs.map(dir => (dir, new OffsetCheckpoint(new File(dir, RecoveryPointCheckpointFile)))).toMap
+OffsetCheckpoint初始化会删除对应的file.tmp文件, 并创建file(如果不存在)，OffsetCheckpoint写是先写.tmp文件, 然后再rename操作的.
+
+loadLogs() {
+首先, 为每个日志dir, 关联一个线程池(线程数num.recovery.threads.per.data.dir)
+用来初始化Log实例, 方法执行完毕即关闭
+
+然后通过日志目录下的CleanShutdownFile文件来判断是否为正常关闭, 正常关闭的时候(LogManager.shutdown方法里面), 会创建该文件, 表示正常关闭, 非正常关闭, 将状态设置为RecoveringFromUncleanShutdown(大概看了下, 后续的kafka.log.Log.loadSegments()会检查CleanShutdownFile, 然后初始化完成后进行kafka.log.Log.recoverLog()操作, 细节TODO)
+RecoveringFromUncleanShutdown这个状态没看到其他地方有使用, 应该就是一个标识状态, 具体待确定
+}
+
+val recoveryPoints = this.recoveryPointCheckpoints(dir).read{
+读取每个dir下的Offset检查点文件, 返回Map[TopicAndPartition, Long]
+
+具体是, 没内容直接返回, 有内容, 读取文件(一般是logdir/recovery-point-offset-checkpoint).
+读第一行, 获取到文件版本信息, 目前是只有一个版本(0), 
+读第二行, 获取到offset的记录数量
+接下来就是读取具体的内容放到map中, 每行的内容格式是:
+topic, partition, offset
+eg: haogrgr 0 0
+
+OffsetCheckpoint写也是类似, 只是先写.tmp文件, 再renameTo, 顺便这里写完就writer.flush();fileOutputStream.getFD().sync();刷盘
+}
+
+遍历日志目录下的文件夹(topic-partition), 
+根据文件夹名字, 获取对应的TopicAndPartition对象,
+根据TopicAndPartition获取topic配置(前面2.1中获取的, 没有就是用默认的logconfig)
+从前面的recoveryPoints中获取对应的恢复点(TODO:待明确).
+创建kafka.log.Log实例new Log(logDir, config, logRecoveryPoint, scheduler, time)
+将log实例放入LogManager.logs中
+
+注意: 上面一步初始化Log是在loadLogs方法第一行创建的线程池中执行的
+
+然后等待每个job执行完成, 最后, 无异常, 则删除cleanShutdownFile文件.
+最后关闭线程池
+
+3.new new Log(logDir, config, logRecoveryPoint, scheduler, time)
+创建Log实例
+
+首先创建日志目录
+然后遍历日志目录, 删除所有以[.deleted]和[.cleaned]结尾的文件//TODO:什么时间会生成这两个文件(Clean线程会定时合并单个Segment到一个文件,合并的时候, 先将多个Segment的文件写入到.cleaned文件, 都写入成功后, 将文件名修改为.swap后缀, 然后添加到Log.segments中, 然后一一将老的Segment对象从Log中移除(文件异步删除), 这个时候, 就可以将.swap后缀去掉了, 新的segment已经完成了)
+然后处理.swap文件, 如果是index文件的swap文件, 则直接删除, 如果是.log文件的swap文件, {则删除日志文件对应的index文件, 然后重命名去掉.swap来完成swap操作}
+接着, 重新遍历log目录, 如果是index文件, 则删除不存在的对应的log的index文件, 如果是.log文件, 根据文件名获取文件的startOffset, 初始化LogSegment对象, 然后更具文件名查找对应的index, 看是否存在, 不存在, 就重建索引
+接着将初始化好的LogSegment对象放入到LogManager.segments对象中去.
+
+最后, 如果LogManager.segments的数量为空(没有消息), 则创建一个Segment对象, startOffset为0.
+如果
+
+
+2.logManager.startup()启动log
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+问题记录:
+调试过程中, 碰到了个问题, 启动的时候, 报了NPE(kafka.log.OffsetIndex.forceUnmap), 调试发现, 是因为方法内部调用了sun.nio.ch.DirectBuffer.cleaner().clean(), 而cleaner()方法可能会返回Null, 导致空异常.
+调试DirectBuffer, 他的cleaner是在构造方法的时候初始化的, 当OffsetIndex.mmap属性初始化的时候, 会将index文件映射为MappedByteBuffer, 通过sun.nio.ch.FileChannelImpl.map方法, 而当文件大小为0的时候, 并不会创建cleaner实例, 所以导致DirectBuffer.cleaner().clean()出现NPE异常, 但是为什么index文件会是空的, 明明已经写入消息了, TODO. 
+补充一点, sun.misc.Cleaner实现PhantomReference接口, 用来在引用的对象被回收的时, 则就会把对象放到PhantomReference队列中, 应用可以通过队列获取到Reference对象, 以便做些回收的工作, 看Cleaner代码时, 发现, 并没有使用PhantomReference队列, 然后查看到java.lang.ref.Reference对象中对Cleaner会优化处理, 当发现为Cleaner类型时, 直接调用Cleaner.clean方法, 其他类型则enqueue.
+
+
+
