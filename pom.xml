@@ -19,7 +19,7 @@
 		<spring.version>4.3.1.RELEASE</spring.version>
 		<httpcore.version>4.4.4</httpcore.version>
 		<httpclient.version>4.5.2</httpclient.version>
-		<log4j.version>2.6</log4j.version>
+		<log4j.version>2.6.2</log4j.version>
 	</properties>
 
 	<repositories>
@@ -319,7 +319,7 @@
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid</artifactId>
-			<version>1.0.21</version>
+			<version>1.0.22</version>
 		</dependency>
 
 		<dependency>
