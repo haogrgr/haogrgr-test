@@ -161,18 +161,30 @@ loadSegments(){
 
 segment = new LogSegment{
 创建FileMessageSet对象
-	
+	这里调用的是def this(file: File)这个构造方法, 内部会调用FileMessageSet(file, new RandomAccessFile(file, "rw").getChannel(), 0, Int.MaxValue, false)
+	这里通过RandomAccessFile来获取到对应的FileChannel, 通过提供类似于切片的功能, 通过维护start, end, isSlice来维护, 通过可以通过iterator遍历整个日志.
+	消息添加是通过ByteBufferMessageSet.writeTo来从buffer写到文件channel的.
 }
+
 创建OffsetIndex对象{
 	创建startOffset.index文件
 	创建对应的RandomAccessFile实例:val raf = new RandomAccessFile(file, "rw")
 	如果老的index文件存在, 即file.createNewFile返回true, 则设置文件长度为小于maxIndexSize(默认1m, 最小为8b), 如果不为8的倍数, 则修改为最接近的8的倍数 :raf.setLength(roundToExactMultiple(maxIndexSize, 8))
 	然后通过raf.getChannel.map来内存映射文件, 获取MappedByteBuffer
 	最后, 设置buffer的position指针, 如果新文件, 就是0, 老文件, 则是, 文件大小, 然后关闭流
+
+	这个类主要的功能就是维护索引, 先是mmap索引文件, 而索引文件中内容是已8个字节为一个entry, 其中前4个字节为相对offset(原始offset-baseOffset), 后4个字节为日志文件偏移, 
+	查找时采用二分查找, 因为offset在索引文件中是有序的, 同时因为是mmap, 所以查找效率高, 主要用于日志读取时使用(LogSegment.translateOffset)
+	
+	这里并不是每个消息offset都索引, 而是间隔一定大小索引一次(indexIntervalBytes), 所以查找到文件位置后, 还需要再去log中去查找到精确的位置, 具体的判断是在LogSegment中实现的.
 }
 
-segment.recover(config.maxMessageSize){
+LogSegment是log和index的包装, 提供一个统一的api来统一的操作index和log, 屏蔽log和index细节.
+包含了append, read, flush, delete等方法.
 
+重建log的索引
+segment.recover(config.maxMessageSize){
+	先index.truncate, 将索引mmap的position设置到0, 然后
 }
 
 
