@@ -133,9 +133,9 @@ OffsetCheckpoint写也是类似, 只是先写.tmp文件, 再renameTo, 顺便这�
 }
 
 遍历日志目录下的文件夹(topic-partition), 
-根据文件夹名字, 获取对应的TopicAndPartition对象,
+根据文件夹名字(topic-partition), 获取对应的TopicAndPartition对象,
 根据TopicAndPartition获取topic配置(前面2.1中获取的, 没有就是用默认的logconfig)
-从前面的recoveryPoints中获取对应的恢复点(TODO:待明确).
+从前面的recoveryPoints中获取对应的恢复点(分区对应的offset)(TODO:待明确).
 创建kafka.log.Log实例new Log(logDir, config, logRecoveryPoint, scheduler, time)
 将log实例放入LogManager.logs中
 
@@ -147,8 +147,36 @@ OffsetCheckpoint写也是类似, 只是先写.tmp文件, 再renameTo, 顺便这�
 3.new new Log(logDir, config, logRecoveryPoint, scheduler, time)
 创建Log实例
 
+loadSegments(){
 首先创建日志目录
-然后遍历日志目录, 删除所有以[.deleted]和[.cleaned]结尾的文件//TODO:什么时间会生成这两个文件(Clean线程会定时合并单个Segment到一个文件,合并的时候, 先将多个Segment的文件写入到.cleaned文件, 都写入成功后, 将文件名修改为.swap后缀, 然后添加到Log.segments中, 然后一一将老的Segment对象从Log中移除(文件异步删除), 这个时候, 就可以将.swap后缀去掉了, 新的segment已经完成了)
+然后遍历日志目录下所有文件{
+	 删除所有以[.deleted]和[.cleaned]结尾的文件//TODO:什么时间会生成这两个文件(Clean线程会定时合并单个Segment到一个文件,合并的时候, 先将多个Segment的文件写入到.cleaned文件, 都写入成功后, 将文件名修改为.swap后缀, 然后添加到Log.segments中, 然后一一将老的Segment对象从Log中移除(文件异步删除), 这个时候, 就可以将.swap后缀去掉了, 新的segment已经完成了)
+	如果以[.swap]结尾, 如果是log文件的.swap文件, 重命名, 去掉.swap, 完成swap操作, 并删除索引文件(后续会重建), 如果是index文件的swap文件, 则直接删除. 
+}
+然后再次遍历日志目录下所有文件{
+	首先, 删除没有对应log文件的index文件.
+	然后, 如果为log文件, 则创建对应的LogSegment对象, 如果没有对应的index文件, 则重建segment.recover(config.maxMessageSize), 然后将segment放入到log的segments中去, key为文件名(startOffset).
+}
+}
+
+segment = new LogSegment{
+创建FileMessageSet对象
+	
+}
+创建OffsetIndex对象{
+	创建startOffset.index文件
+	创建对应的RandomAccessFile实例:val raf = new RandomAccessFile(file, "rw")
+	如果老的index文件存在, 即file.createNewFile返回true, 则设置文件长度为小于maxIndexSize(默认1m, 最小为8b), 如果不为8的倍数, 则修改为最接近的8的倍数 :raf.setLength(roundToExactMultiple(maxIndexSize, 8))
+	然后通过raf.getChannel.map来内存映射文件, 获取MappedByteBuffer
+	最后, 设置buffer的position指针, 如果新文件, 就是0, 老文件, 则是, 文件大小, 然后关闭流
+}
+
+segment.recover(config.maxMessageSize){
+
+}
+
+
+
 然后处理.swap文件, 如果是index文件的swap文件, 则直接删除, 如果是.log文件的swap文件, {则删除日志文件对应的index文件, 然后重命名去掉.swap来完成swap操作}
 接着, 重新遍历log目录, 如果是index文件, 则删除不存在的对应的log的index文件, 如果是.log文件, 根据文件名获取文件的startOffset, 初始化LogSegment对象, 然后更具文件名查找对应的index, 看是否存在, 不存在, 就重建索引
 接着将初始化好的LogSegment对象放入到LogManager.segments对象中去.
