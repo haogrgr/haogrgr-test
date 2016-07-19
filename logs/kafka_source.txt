@@ -1,6 +1,7 @@
 源码阅读(0.8.2.2):
 
 
+
 (一)概览
 
 1.调用kafka.Kafka中的main方法启动
@@ -22,6 +23,7 @@
 	kafkaServerStartable.startup
 
 7.注册shutdown hook, 等待shutdown信号(阻塞), 调用shutdown方法关闭.
+
 
 
 (二)KafkaServerStartable.startup启动逻辑
@@ -60,16 +62,33 @@
 			其他行: 具体的快照信息, 格式为, `topic partition offset`, 如  haogrgr 0 100.
 		OffsetCheckpoint写是先写.tmp文件, 然后再rename操作, 最后刷盘(writer.flush();fileOutputStream.getFD().sync()).
 		
-		
+		loadLogs(){
+			具体见2.4.1
+		}
 	}
 }
 
-loadLogs() {
-首先, 为每个日志dir, 关联一个线程池(线程数num.recovery.threads.per.data.dir)
-用来初始化Log实例, 方法执行完毕即关闭
-
-然后通过日志目录下的CleanShutdownFile文件来判断是否为正常关闭, 正常关闭的时候(LogManager.shutdown方法里面), 会创建该文件, 表示正常关闭, 非正常关闭, 将状态设置为RecoveringFromUncleanShutdown(大概看了下, 后续的kafka.log.Log.loadSegments()会检查CleanShutdownFile, 然后初始化完成后进行kafka.log.Log.recoverLog()操作, 细节TODO)
-RecoveringFromUncleanShutdown这个状态没看到其他地方有使用, 应该就是一个标识状态, 具体待确定
+4.1.加载日志 loadLogs() {
+	val threadPools = mutable.ArrayBuffer.empty[ExecutorService]
+	首先, 为每个日志dir创建一个线程池来异步执行初始化任务
+	
+	遍历全部的dir列表{
+		首先, 为每个日志dir, 关联一个线程池(线程数num.recovery.threads.per.data.dir), 用来初始化Log实例, 方法执行完毕即关闭
+		
+		然后, 通过日志目录下的CleanShutdownFile文件来判断是否为正常关闭, 正常关闭的时候(LogManager.shutdown方法里面), 会创建该文件, 表示正常关闭, 
+		非正常关闭, 将状态设置为RecoveringFromUncleanShutdown
+		(大概看了下, 后续的Log.loadSegments会检查CleanShutdownFile, 然后初始化完成后进行Log.recoverLog操作, 细节TODO)
+		
+		val recoveryPoints = this.recoveryPointCheckpoints(dir).read
+		recoveryPoints是一个map[topic_partition, offset], kafka在正常关闭, 或定时任务, 或者清理日志的时候(细节TODO), 会将当前每个分区的最新的offset写到快照文件中,
+		
+	}
+	
+	
+	
+	
+	然后通过日志目录下的CleanShutdownFile文件来判断是否为正常关闭, 
+	RecoveringFromUncleanShutdown这个状态没看到其他地方有使用, 应该就是一个标识状态, 具体待确定
 }
 
 val recoveryPoints = this.recoveryPointCheckpoints(dir).read{
