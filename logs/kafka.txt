@@ -184,7 +184,7 @@ LogSegment是log和index的包装, 提供一个统一的api来统一的操作ind
 
 重建log的索引
 segment.recover(config.maxMessageSize){
-	先index.truncate, 将索引mmap的position设置到0, 然后
+	先index.truncate, 将索引mmap的position设置到0, 
 }
 
 

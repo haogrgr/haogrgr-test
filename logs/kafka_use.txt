@@ -1,0 +1,47 @@
+http://www.jasongj.com/2015/08/09/KafkaColumn4/
+
+用来设置, zk上没有offset信息或者offset信息不再范围时的动作: 
+props.put("auto.offset.reset", "smallest");
+smallest : 自动重置成最小的offset, 开始消费
+largest : 自动重置成最大的offset
+anything else : 抛异常
+
+StringDecoder decoder = new StringDecoder(null);
+Map<String, Integer> topicCountMap = Maps.of(topic, 1);
+Map<String, List<KafkaStream<String, String>>> consumerMap = consumer.createMessageStreams(topicCountMap,
+decoder, decoder);
+
+topicCountMap表示指定topic使用几个线程消费(不能超过partition数)
+例子: 比如说有3个partition(p1,p2,p3), 两个客户端(c1, c2)
+如果c1, c2的topicCountMap为Maps.of(topic, 2), 
+则, 运行时, 是这样的, c1两个线程, 消费p1,p2, c2一个线程, 消费p3
+
+kafka可以设置为自动提交commit, 也可以选择手动提交commit
+props.put("auto.commit.enable", "false");
+因为每次提交commit都要写kafka, 所以, 尽可能批量提交
+
+生产端, 使用key来作为分区键, 将消息分散到各个partition, 默认的分区规则为, key为long, 则直接 key % partition数, 其他则为
+key.hashcode % partition数.
+
+生产端根据可靠性需要, 可以设置
+request.required.acks = -1
+0:不等待broker的ack, 低延迟, 可能会丢消息
+1:等待leader broker的ack, 中延迟, leader还没有同步到其他broker时, 挂掉, 会丢消息.
+-1: 高延迟, 保证所有in-sync副本都有收到消息, 除非in-sync中的broker都挂了, 才会丢消息.
+
+消费消息时 , 一般是受到消息, 交个业务处理, 那么这里业务处理出异常了, 需要重试, 而hight api没有重新消费的api, 有两个处理方法:
+1.关闭自动commit, 在内存中保持出异常的消息, 然后不断重试业务
+2.关闭自动commit, 关闭客户端, 重新打开.
+
+kafka的消费端group概念, 每条消息同一group中只有一个消费者会处理, 消费者启动时, kafka会指定其消费哪些partition, 
+例如: partition(p1,p2,p3), 客户端c1, c2属于同一个group, 那么, c1会消费p1, p2上的所有消息, c2会消费p3上的消息, 当c2停止后, c1会消费p1,p2,p3上的消息.
+当客户端实例数量大于partition时, 会出现有客户端收不到消息, 所以客户端数量不能大于partition数.
+虽然按照partition来负载均衡, 粒度比较粗, 但是大大的简化了开发.
+kafka使用zk来实现group的概念, 通过zk watch来获取客户端变更的事件, 从而实现rebalance.
+
+0.8.2开始, kafka使用纯Java实现了一个新的client api, 叫kafka-clients
+新的client api更加的灵活, 提供更多的api, 但是, 里面的实现是空的, 坑爹, 所以, 要用新的api, 必须要0.9及以上的版本
+
+kafka.consumer.ConsumerIterator.makeNext()
+如果设置了kafka.consumer.timeout.ms参数, 那么调用ConsumerIterator.hasNext()方法, 会在阻塞了指定时间后, 也没获取到消息时, 会抛出ConsumerTimeoutException异常
+
