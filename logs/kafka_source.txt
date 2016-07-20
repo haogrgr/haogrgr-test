@@ -63,7 +63,7 @@
 		OffsetCheckpoint写是先写.tmp文件, 然后再rename操作, 最后刷盘(writer.flush();fileOutputStream.getFD().sync()).
 		
 		loadLogs(){
-			具体见2.4.1
+			具体见下面的2.4.1.加载日志 loadLogs().
 		}
 	}
 }
@@ -81,6 +81,72 @@
 		
 		val recoveryPoints = this.recoveryPointCheckpoints(dir).read
 		recoveryPoints是一个map[topic_partition, offset], kafka在正常关闭, 或定时任务, 或者清理日志的时候(细节TODO), 会将当前每个分区的最新的offset写到快照文件中,
+		这里读取文件, 获取每个分区的快照信息(offset), recoveryPoint在Log对象中, 保存的是已经flush的最大的offset值, 在log.flush中, 刷盘后会更新该值, 即小于等于recoveryPoint的消息都是落盘了的.
+		主要作用是: 减少恢复时日志的扫描数量; 通过(logEndOffset - recoveryPoint)可以得到未刷盘消息数, 做刷盘控制;
+		
+		对与日志dir下的每个目录(topic-partition目录)创建初始化Log对象的任务 Utils.runnable {
+			val topicPartition = Log.parseTopicPartitionName(logDir.getName)
+			首先通过目录名解析出来topic和partition
+			
+			然后, 获取topic配置类(根据前面2,4中zk上的配置和默认配置合并), 同时获取 recoveryPoint值
+			
+			val current = new Log(logDir, config, logRecoveryPoint, scheduler, time) {
+				创建Log对象实例
+				
+				private val segments = new ConcurrentSkipListMap[java.lang.Long, LogSegment]
+				Log对象属性, 用来存放segment对象, LogSegment表示分区下的日志文件及其对应的索引文件.
+				
+				loadSegments() {
+					初始化分区下的所有LogSegment对象
+					
+					首先创建日志目录(如果不存在)
+					
+					然后遍历日志目录下所有文件{
+						 删除所有以[.deleted]结尾的文件, 什么时候会产生该后缀的文件?
+						 1)根据配置, kafka会删除一些旧日志(LogSegment)(retentionMs, retentionSize), 
+						 删除逻辑为: a)先讲要删除的LogSegment从log.segments中移除. b)再重命名日志和索引文件名后缀为.deleted, c)最后提交异步任务, 任务中再删除日志和对应的索引文件.
+						 
+						 和[.cleaned]
+						 什么时间会生成这两个文件(Clean线程会定时合并单个Segment到一个文件,合并的时候, 先将多个Segment的文件写入到.cleaned文件, 都写入成功后, 将文件名修改为.swap后缀, 然后添加到Log.segments中, 然后一一将老的Segment对象从Log中移除(文件异步删除), 这个时候, 就可以将.swap后缀去掉了, 新的segment已经完成了)
+						如果以[.swap]结尾, 如果是log文件的.swap文件, 重命名, 去掉.swap, 完成swap操作, 并删除索引文件(后续会重建), 如果是index文件的swap文件, 则直接删除, 后面会根据log文件重建索引文件. 
+					}
+					
+					然后再次遍历日志目录下所有文件{
+						首先, 删除没有对应log文件的index文件.
+						然后, 如果为log文件, 则创建对应的LogSegment对象, 如果没有对应的index文件, 则重建segment.recover(config.maxMessageSize), 然后将segment放入到log的segments中去, key为文件名(startOffset).
+						
+						segment = new LogSegment{
+							创建FileMessageSet对象{
+								这里调用的是def this(file: File)这个构造方法, 内部会调用FileMessageSet(file, new RandomAccessFile(file, "rw").getChannel(), 0, Int.MaxValue, false)
+								这里通过RandomAccessFile来获取到对应的FileChannel, 通过提供类似于切片的功能, 通过维护start, end, isSlice来维护, 通过可以通过iterator遍历整个日志.
+								消息添加是通过ByteBufferMessageSet.writeTo来从buffer写到文件channel的.
+							}
+							
+							创建OffsetIndex对象{
+								创建startOffset.index文件
+								创建对应的RandomAccessFile实例:val raf = new RandomAccessFile(file, "rw")
+								如果老的index文件存在, 即file.createNewFile返回true, 则设置文件长度为小于maxIndexSize(默认1m, 最小为8b), 如果不为8的倍数, 则修改为最接近的8的倍数 :raf.setLength(roundToExactMultiple(maxIndexSize, 8))
+								然后通过raf.getChannel.map来内存映射文件, 获取MappedByteBuffer
+								最后, 设置buffer的position指针, 如果新文件, 就是0, 老文件, 则是, 文件大小, 然后关闭流
+							
+								这个类主要的功能就是维护索引, 先是mmap索引文件, 而索引文件中内容是已8个字节为一个entry, 其中前4个字节为相对offset(原始offset-baseOffset), 后4个字节为日志文件偏移, 
+								查找时采用二分查找, 因为offset在索引文件中是有序的, 同时因为是mmap, 所以查找效率高, 主要用于日志读取时使用(LogSegment.translateOffset)
+								
+								这里并不是每个消息offset都索引, 而是间隔一定大小索引一次(indexIntervalBytes), 所以查找到文件位置后, 还需要再去log中去查找到精确的位置, 具体的判断是在LogSegment中实现的.
+							}
+							
+							LogSegment是log和index的包装, 提供一个统一的api来统一的操作index和log, 屏蔽log和index细节.
+							包含了append, read, flush, delete等方法.
+						}
+					
+					}
+				}
+				
+			}
+		
+		}
+		
+		
 		
 	}
 	
@@ -91,25 +157,6 @@
 	RecoveringFromUncleanShutdown这个状态没看到其他地方有使用, 应该就是一个标识状态, 具体待确定
 }
 
-val recoveryPoints = this.recoveryPointCheckpoints(dir).read{
-读取每个dir下的Offset检查点文件, 返回Map[TopicAndPartition, Long]
-
-具体是, 没内容直接返回, 有内容, 读取文件(一般是logdir/recovery-point-offset-checkpoint).
-读第一行, 获取到文件版本信息, 目前是只有一个版本(0), 
-读第二行, 获取到offset的记录数量
-接下来就是读取具体的内容放到map中, 每行的内容格式是:
-topic, partition, offset
-eg: haogrgr 0 0
-
-OffsetCheckpoint写也是类似, 只是先写.tmp文件, 再renameTo, 顺便这里写完就writer.flush();fileOutputStream.getFD().sync();刷盘
-}
-
-遍历日志目录下的文件夹(topic-partition), 
-根据文件夹名字(topic-partition), 获取对应的TopicAndPartition对象,
-根据TopicAndPartition获取topic配置(前面2.1中获取的, 没有就是用默认的logconfig)
-从前面的recoveryPoints中获取对应的恢复点(分区对应的offset)(TODO:待明确).
-创建kafka.log.Log实例new Log(logDir, config, logRecoveryPoint, scheduler, time)
-将log实例放入LogManager.logs中
 
 注意: 上面一步初始化Log是在loadLogs方法第一行创建的线程池中执行的
 
