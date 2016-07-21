@@ -101,34 +101,49 @@
 					
 					首先创建日志目录(如果不存在)
 					
-					然后遍历日志目录下所有文件{
-						 删除所有以[.deleted]结尾的文件, 什么时候会产生该后缀的文件?
-						 1)根据配置, kafka会删除一些旧日志(LogSegment)(retentionMs, retentionSize), 
-						 删除逻辑为: a)先讲要删除的LogSegment从log.segments中移除. b)再重命名日志和索引文件名后缀为.deleted, c)最后提交异步任务, 任务中再删除日志和对应的索引文件.
-						 
-						 和[.cleaned]
-						 什么时间会生成这两个文件(Clean线程会定时合并单个Segment到一个文件,合并的时候, 先将多个Segment的文件写入到.cleaned文件, 都写入成功后, 将文件名修改为.swap后缀, 然后添加到Log.segments中, 然后一一将老的Segment对象从Log中移除(文件异步删除), 这个时候, 就可以将.swap后缀去掉了, 新的segment已经完成了)
-						如果以[.swap]结尾, 如果是log文件的.swap文件, 重命名, 去掉.swap, 完成swap操作, 并删除索引文件(后续会重建), 如果是index文件的swap文件, 则直接删除, 后面会根据log文件重建索引文件. 
+					然后遍历日志目录下所有文件 {
+						 删除所有以[.deleted]结尾的文件(log和index), 什么时候会产生该后缀的文件?
+						  a)根据配置, kafka会删除一些旧日志(LogSegment)(retentionMs, retentionSize), 定时任务LogManager.cleanupLogs;
+						  b)日志恢复操作, Log.recoverLog, 当非正常关闭kafka时, 会恢复日志, 一旦发现不正常的日志, 这个offset(含)之后的字节和LogSegment都会被删除;
+						  c)主从同步时, 当从落后太多(从的最大offset小于主的最小offset(可能日志会被清理了)), 则从会logManager.truncateFullyAndStartAt, 来删除老的日志, 从新的offset开始;
+						  d)主从同步时, 由于分区Leader的变化, 之前和旧Leader同步的数据可能不是最新的, 需要删除highWatermark(offset)(TODO)之后的数据, 防止不一致, ReplicaManager.makeFollowers;
+						 删除步骤为:
+						  a)先讲要删除的LogSegment从log.segments中移除;
+						  b)再重命名日志和索引文件名后缀为.deleted;
+						  c)最后提交异步任务, 任务中再删除日志和对应的索引文件.
+						
+						删除所有以[.cleaned]结尾的文件(log和index), 什么时候会产生该后缀的文件?
+						  a)Cleaner.clean中, 会将多个Segment清理成一个Segment, 然后交换到Log.segments中(清理:同key的消息, 去最后的value), 交换过程中, 先是将多个Segment中的日志(合并同key消息)写入到.cleaned文件中, 写完后, 重命名为.swap文件, 然后删除老Segment文件, 最后去掉.swap后缀;
+						可以看到, 交换步骤为分为三步, 第一步先写.cleaned文件, 保证文件全部清理完后再操作, 然后重命名为.swap文件, 这时可以删除老的文件了, 删除操作参考上面的.deleted文件操作, 最后重命名, 去掉.swap后缀, 中间任何一步异常, 都不会破坏文件完整性.
+						一个疑惑: 当重命名为.swap成功, 但是马上carsh了, 导致老的log没有移除, 那么下次启动时, 老的日志依然存在, 如何处理(猜测: 因为是clean, 所以只会clean达到调节的log, 下次启动会继续clean操作, 待验证TODO)
+						
+						处理.swap文件, 如上面说的, 当swap操作进行到一半而挂掉了, 就可能会有.swap文件, 这里需要完成swap操作, 重命名去掉.swap后缀, 删除索引, 后续会判断相关的log文件是否有对应的index文件, 没有会重建索引文件.
 					}
 					
 					然后再次遍历日志目录下所有文件{
 						首先, 删除没有对应log文件的index文件.
-						然后, 如果为log文件, 则创建对应的LogSegment对象, 如果没有对应的index文件, 则重建segment.recover(config.maxMessageSize), 然后将segment放入到log的segments中去, key为文件名(startOffset).
 						
-						segment = new LogSegment{
+						然后, 如果为log文件, 则创建LogSegment对象, 如果没有对应的index文件, 则重建LogSegment.recover, 然后将segment放入到log的segments中去, key为文件名(startOffset).
+						
+						重建索引文件 LogSegment.recover {
+							遍历log文件, 每隔指定间隔字节数, 就在索引文件中添加一条索引, 最后设置log和index文件大小为有效的字节数
+						}
+						
+						则创建LogSegment对象 segment = new LogSegment {
 							创建FileMessageSet对象{
 								这里调用的是def this(file: File)这个构造方法, 内部会调用FileMessageSet(file, new RandomAccessFile(file, "rw").getChannel(), 0, Int.MaxValue, false)
-								这里通过RandomAccessFile来获取到对应的FileChannel, 通过提供类似于切片的功能, 通过维护start, end, isSlice来维护, 通过可以通过iterator遍历整个日志.
+								这里通过RandomAccessFile来获取到对应的FileChannel, 提供类似于切片的功能, 通过维护start, end, isSlice来实现, 提供iterator方式来遍历整个日志文件.
 								消息添加是通过ByteBufferMessageSet.writeTo来从buffer写到文件channel的.
+								这个类主要提供Log文件的读写等操作
 							}
 							
 							创建OffsetIndex对象{
 								创建startOffset.index文件
 								创建对应的RandomAccessFile实例:val raf = new RandomAccessFile(file, "rw")
-								如果老的index文件存在, 即file.createNewFile返回true, 则设置文件长度为小于maxIndexSize(默认1m, 最小为8b), 如果不为8的倍数, 则修改为最接近的8的倍数 :raf.setLength(roundToExactMultiple(maxIndexSize, 8))
+								如果老的index文件存在, 即file.createNewFile返回true, 则设置文件长度为小于maxIndexSize(默认1m, 最小为8b), 如果不为8的倍数, 则取最近的8的倍数 :raf.setLength(roundToExactMultiple(maxIndexSize, 8))
 								然后通过raf.getChannel.map来内存映射文件, 获取MappedByteBuffer
 								最后, 设置buffer的position指针, 如果新文件, 就是0, 老文件, 则是, 文件大小, 然后关闭流
-							
+								
 								这个类主要的功能就是维护索引, 先是mmap索引文件, 而索引文件中内容是已8个字节为一个entry, 其中前4个字节为相对offset(原始offset-baseOffset), 后4个字节为日志文件偏移, 
 								查找时采用二分查找, 因为offset在索引文件中是有序的, 同时因为是mmap, 所以查找效率高, 主要用于日志读取时使用(LogSegment.translateOffset)
 								
@@ -140,91 +155,49 @@
 						}
 					
 					}
-				}
+					
+					好了,  经过前面两次的遍历, 已经创建好了LogSegment并都放到Log.segments中去了
+					
+					如果目录是空的, 就创建一个startOffset=0的LogSegment, 加入到Log.segments中去.
+					
+					如果目录不是空的, 就进行Log.recoverLog操作{
+						首先, 如果是正常关闭的(hasCleanShutdownFile), 则没啥好恢复的, 设置recoveryPoint为下一个offset, 结束方法.
+						
+						非正常结束, 需要恢复recoveryPoint(前面2.4.1有讲)之后的LogSegment对应的日志, 通过Log.segments的方法, 获取大于recoveryPoint的记录,
+						遍历需要恢复操作的LogSegment列表, 对每个LogSegment, 遍历日志文件, 重建索引, 遍历的时候校验消息(computeChecksum等), 一旦某条消息出问题了, 这条消息和它后面的数据都会被删除.
+						同时, 改LogSegment之后的LogSegment也会被删除.
+						
+						// reset the index size of the currently active log segment to allow more entries
+						activeSegment.index.resize(config.maxIndexSize)
+						最后设置当前活动的LogSegment(startOffset最大的segment), 的index文件为config.maxIndexSize, 因为上一步会吧index文件设置为真实大小, 而当前LogSegment还会有add操作, 会导致index写失败.
+						kafka.log.OffsetIndex.append中会校验index是否满了(require(!isFull)).
+					}
+					
+					最后, 一个简单的校验, 校验index文件大小是不是8的倍数.
+					
+				}loadSegments()结束
 				
-			}
-		
-		}
-		
-		
-		
-	}
-	
-	
-	
-	
-	然后通过日志目录下的CleanShutdownFile文件来判断是否为正常关闭, 
-	RecoveringFromUncleanShutdown这个状态没看到其他地方有使用, 应该就是一个标识状态, 具体待确定
-}
-
-
-注意: 上面一步初始化Log是在loadLogs方法第一行创建的线程池中执行的
-
-然后等待每个job执行完成, 最后, 无异常, 则删除cleanShutdownFile文件.
-最后关闭线程池
-
-3.new new Log(logDir, config, logRecoveryPoint, scheduler, time)
-创建Log实例
-
-loadSegments(){
-首先创建日志目录
-然后遍历日志目录下所有文件{
-	 删除所有以[.deleted]和[.cleaned]结尾的文件//TODO:什么时间会生成这两个文件(Clean线程会定时合并单个Segment到一个文件,合并的时候, 先将多个Segment的文件写入到.cleaned文件, 都写入成功后, 将文件名修改为.swap后缀, 然后添加到Log.segments中, 然后一一将老的Segment对象从Log中移除(文件异步删除), 这个时候, 就可以将.swap后缀去掉了, 新的segment已经完成了)
-	如果以[.swap]结尾, 如果是log文件的.swap文件, 重命名, 去掉.swap, 完成swap操作, 并删除索引文件(后续会重建), 如果是index文件的swap文件, 则直接删除, 后面会根据log文件重建索引文件. 
-}
-然后再次遍历日志目录下所有文件{
-	首先, 删除没有对应log文件的index文件.
-	然后, 如果为log文件, 则创建对应的LogSegment对象, 如果没有对应的index文件, 则重建segment.recover(config.maxMessageSize), 然后将segment放入到log的segments中去, key为文件名(startOffset).
-	
-	segment = new LogSegment{
-		创建FileMessageSet对象{
-			这里调用的是def this(file: File)这个构造方法, 内部会调用FileMessageSet(file, new RandomAccessFile(file, "rw").getChannel(), 0, Int.MaxValue, false)
-			这里通过RandomAccessFile来获取到对应的FileChannel, 通过提供类似于切片的功能, 通过维护start, end, isSlice来维护, 通过可以通过iterator遍历整个日志.
-			消息添加是通过ByteBufferMessageSet.writeTo来从buffer写到文件channel的.
-		}
-		
-		创建OffsetIndex对象{
-			创建startOffset.index文件
-			创建对应的RandomAccessFile实例:val raf = new RandomAccessFile(file, "rw")
-			如果老的index文件存在, 即file.createNewFile返回true, 则设置文件长度为小于maxIndexSize(默认1m, 最小为8b), 如果不为8的倍数, 则修改为最接近的8的倍数 :raf.setLength(roundToExactMultiple(maxIndexSize, 8))
-			然后通过raf.getChannel.map来内存映射文件, 获取MappedByteBuffer
-			最后, 设置buffer的position指针, 如果新文件, 就是0, 老文件, 则是, 文件大小, 然后关闭流
-		
-			这个类主要的功能就是维护索引, 先是mmap索引文件, 而索引文件中内容是已8个字节为一个entry, 其中前4个字节为相对offset(原始offset-baseOffset), 后4个字节为日志文件偏移, 
-			查找时采用二分查找, 因为offset在索引文件中是有序的, 同时因为是mmap, 所以查找效率高, 主要用于日志读取时使用(LogSegment.translateOffset)
+			}new Log()结束
 			
-			这里并不是每个消息offset都索引, 而是间隔一定大小索引一次(indexIntervalBytes), 所以查找到文件位置后, 还需要再去log中去查找到精确的位置, 具体的判断是在LogSegment中实现的.
-		}
+			创建完Log实例后, 加入到LogManager.logs中(key:TopicPartition, value:Log实例), 如果存在TopicPartition对应两个Log实例, 报错
+			
+		}Utils.runnable结束
 		
-		LogSegment是log和index的包装, 提供一个统一的api来统一的操作index和log, 屏蔽log和index细节.
-		包含了append, read, flush, delete等方法.
-	}
+		最后, 提交上面的任务(Utils.runnable)到线程池中并行执行, 并收集结果.	
+		
+	}遍历全部的dir列表, 结束
+	
+	对每个log dir, 获取上面的任务的执行结果, 无异常, 则删除目录下面的cleanShutdownFile文件.
+	
+	最后结束线程池.
+	
+}loadLogs 关闭
 
+
+5.日志管理器启动 logManager.startup(){
+	
+	
 }
-}
-
-
-
-然后将创建的LogSegment放入到log.segments map中, 如果目录下还没有日志文件, 就创建一个startOffset=0的LogSegment对象放入log.segments中
-
-如果目录下存在log文件, 则调用recoverLog, activeSegment.index.resize来恢复日志
-
-重建log的索引
-segment.recover(config.maxMessageSize){
-	先index.truncate, 将索引mmap的position设置到0, 
-}
-
-
-
-然后处理.swap文件, 如果是index文件的swap文件, 则直接删除, 如果是.log文件的swap文件, {则删除日志文件对应的index文件, 然后重命名去掉.swap来完成swap操作}
-接着, 重新遍历log目录, 如果是index文件, 则删除不存在的对应的log的index文件, 如果是.log文件, 根据文件名获取文件的startOffset, 初始化LogSegment对象, 然后更具文件名查找对应的index, 看是否存在, 不存在, 就重建索引
-接着将初始化好的LogSegment对象放入到LogManager.segments对象中去.
-
-最后, 如果LogManager.segments的数量为空(没有消息), 则创建一个Segment对象, startOffset为0.
-如果
-
-
-2.logManager.startup()启动log
 
 
 
@@ -243,7 +216,8 @@ segment.recover(config.maxMessageSize){
 
 
 问题记录:
-调试过程中, 碰到了个问题, 启动的时候, 报了NPE(kafka.log.OffsetIndex.forceUnmap), 调试发现, 是因为方法内部调用了sun.nio.ch.DirectBuffer.cleaner().clean(), 而cleaner()方法可能会返回Null, 导致空异常.
+
+1.调试过程中, 碰到了个问题, 启动的时候, 报了NPE(kafka.log.OffsetIndex.forceUnmap), 调试发现, 是因为方法内部调用了sun.nio.ch.DirectBuffer.cleaner().clean(), 而cleaner()方法可能会返回Null, 导致空异常.
 调试DirectBuffer, 他的cleaner是在构造方法的时候初始化的, 当OffsetIndex.mmap属性初始化的时候, 会将index文件映射为MappedByteBuffer, 通过sun.nio.ch.FileChannelImpl.map方法, 而当文件大小为0的时候, 并不会创建cleaner实例, 所以导致DirectBuffer.cleaner().clean()出现NPE异常, 但是为什么index文件会是空的, 明明已经写入消息了, TODO. 
 补充一点, sun.misc.Cleaner实现PhantomReference接口, 用来在引用的对象被回收的时, 则就会把对象放到PhantomReference队列中, 应用可以通过队列获取到Reference对象, 以便做些回收的工作, 看Cleaner代码时, 发现, 并没有使用PhantomReference队列, 然后查看到java.lang.ref.Reference对象中对Cleaner会优化处理, 当发现为Cleaner类型时, 直接调用Cleaner.clean方法, 其他类型则enqueue.
 
