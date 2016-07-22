@@ -217,9 +217,12 @@
 
 问题记录:
 
-1.调试过程中, 碰到了个问题, 启动的时候, 报了NPE(kafka.log.OffsetIndex.forceUnmap), 调试发现, 是因为方法内部调用了sun.nio.ch.DirectBuffer.cleaner().clean(), 而cleaner()方法可能会返回Null, 导致空异常.
-调试DirectBuffer, 他的cleaner是在构造方法的时候初始化的, 当OffsetIndex.mmap属性初始化的时候, 会将index文件映射为MappedByteBuffer, 通过sun.nio.ch.FileChannelImpl.map方法, 而当文件大小为0的时候, 并不会创建cleaner实例, 所以导致DirectBuffer.cleaner().clean()出现NPE异常, 但是为什么index文件会是空的, 明明已经写入消息了, TODO. 
-补充一点, sun.misc.Cleaner实现PhantomReference接口, 用来在引用的对象被回收的时, 则就会把对象放到PhantomReference队列中, 应用可以通过队列获取到Reference对象, 以便做些回收的工作, 看Cleaner代码时, 发现, 并没有使用PhantomReference队列, 然后查看到java.lang.ref.Reference对象中对Cleaner会优化处理, 当发现为Cleaner类型时, 直接调用Cleaner.clean方法, 其他类型则enqueue.
+1.调试过程中, 碰到了个问题, 启动的时候, 报了NPE(kafka.log.OffsetIndex.forceUnmap), 调试发现, 是因为方法内部调用了sun.nio.ch.DirectBuffer.cleaner().clean(), 
+而cleaner()方法可能会返回Null, 导致空异常. 调试DirectBuffer, 他的cleaner是在构造方法的时候初始化的, 当OffsetIndex.mmap属性初始化的时候, 会将index文件映射为MappedByteBuffer, 
+通过sun.nio.ch.FileChannelImpl.map方法, 而当文件大小为0的时候, 并不会创建cleaner实例, 所以导致DirectBuffer.cleaner().clean()出现NPE异常, 但是为什么index文件会是空的, 
+明明已经写入消息了, TODO(猜测, 因为索引是间隔的添加的, 可能少量消息时, 并没有写index文件, 且非正常关闭(正常关闭, 下次启动时不会recoverLog)). 
+补充一点, sun.misc.Cleaner实现PhantomReference接口, 用来在引用的对象被回收的时, 则就会把对象放到PhantomReference队列中, 应用可以通过队列获取到Reference对象, 以便做些回收的工作, 
+看Cleaner代码时, 发现, 并没有使用PhantomReference队列, 然后查看到java.lang.ref.Reference对象中对Cleaner会优化处理, 当发现为Cleaner类型时, 直接调用Cleaner.clean方法, 其他类型则enqueue.
 
 
 
