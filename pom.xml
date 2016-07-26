@@ -50,6 +50,7 @@
 			<name>Public Repositories</name>
 			<url>http://maven.oschina.net/content/groups/public/</url>
 			<url>http://maven.wso2.org/nexus/content/groups/public/</url>
+			<url>http://jcenter.bintray.com/</url>
 		</repository>
 		 -->
 	</repositories>
@@ -64,6 +65,7 @@
 			<name>Public Repositories</name>
 			<url>http://maven.oschina.net/content/groups/public/</url>
 			<url>http://maven.wso2.org/nexus/content/groups/public/</url>
+			<url>http://jcenter.bintray.com/</url>
 		</pluginRepository>
 		 -->
 	</pluginRepositories>
