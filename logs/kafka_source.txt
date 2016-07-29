@@ -195,8 +195,24 @@
 
 
 5.日志管理器启动 logManager.startup(){
+	主要是启动一些定时任务:
+	  a)LogManager.cleanupLogs, 根据配置清理日志文件(cleanupExpiredSegments[根据时间], cleanupSegmentsToMaintainSize[根据大小]).
+	  b)LogManager.flushDirtyLogs, 根据配置定时刷盘, 刷盘后, 会更新恢复点(log.recoveryPoint).
+	  c)LogManager.checkpointRecoveryPointOffsets, 根据配置, 将每个Log.recoveryPoint刷盘, 创建checkpointRecoveryPointOffset文件, 用途前面2.4.1有说.
 	
+	启动cleaner线程
+	cleaner.startup() {
+		内容比较多, 见5.1
+	}
 	
+}
+
+5.1.Cleaner线程 {
+	
+	根据配置, 创建LogCleaner, 如果cleanerConfig.enableCleaner == true
+	new LogCleaner(cleanerConfig, logDirs, logs, time = time) {
+		
+	}
 }
 
 
