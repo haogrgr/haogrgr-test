@@ -159,6 +159,41 @@ final class Main$$Lambda$1 implements Function&lt;String, Void> {
 
 
 [slide]
+# Lambda表达式-实现3.1
+----
+<pre><code class="java">
+final synthetic class com.haogrgr.java8.main.Main$$Lambda$1 implements java.util.function.Function {
+
+  private final java.lang.String arg$1;
+  
+  private Main$$Lambda$1(java.lang.String arg0);
+     0  aload_0 [this]
+     1  invokespecial java.lang.Object() [13]
+     4  aload_0 [this]
+     5  aload_1 [arg0]
+     6  putfield com.haogrgr.java8.main.Main$$Lambda$1.arg$1 : java.lang.String [15]
+     9  return
+
+  private static java.util.function.Function get$Lambda(java.lang.String arg0);
+    0  new com.haogrgr.java8.main.Main$$Lambda$1 [2]
+    3  dup
+    4  aload_0 [arg0]
+    5  invokespecial com.haogrgr.java8.main.Main$$Lambda$1(java.lang.String) [19]
+    8  areturn
+
+  public java.lang.Object apply(java.lang.Object arg0);
+     0  aload_0 [this]
+     1  getfield com.haogrgr.java8.main.Main$$Lambda$1.arg$1 : java.lang.String [15]
+     4  aload_1 [arg0]
+     5  checkcast java.lang.String [23]
+     8  invokestatic com.haogrgr.java8.main.Main.lambda$0(java.lang.String, java.lang.String) : java.lang.Void [29]
+    11  areturn
+
+}
+</code></pre>
+
+
+[slide]
 # Lambda表达式-实现4
 ----
 <pre><code class="java">//没有使用外部变量时, 内部会缓存实力, 而不是每次new
