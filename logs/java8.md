@@ -259,30 +259,257 @@ for (int i = 0; i < 2; i++) {
 
 
 [slide]
+# Function
+----
+函数式编程
+
+
+[slide]
+# Function-Optional
+----
+```java
+Optional<String> op = Optional.ofNullable("value");
+String value = op.orElse("defaultValue");
+```
+
+
+[slide]
+# Function-Consumer
+----
+```java
+@FunctionalInterface
+public interface Consumer<T> {
+
+    void accept(T t);
+
+    default Consumer<T> andThen(Consumer<? super T> after) {
+        Objects.requireNonNull(after);
+        return (T t) -> { accept(t); after.accept(t); };
+    }
+}
+```
+
+```java
+@FunctionalInterface
+public interface BiConsumer<T, U> {
+
+    void accept(T t, U u);
+    
+}
+```
+
+
+[slide]
+# Function-Consumer-N
+----
+```java
+//linkedin parseq
+Consumer1
+Consumer2
+Consumer3
+Consumer4
+Consumer5
+Consumer6
+Consumer7
+Consumer8
+Consumer9
+```
+
+
+[slide]
+# Function-Function
+----
+```java
+@FunctionalInterface
+public interface Function<T, R> {
+
+    R apply(T t);
+    
+}
+
+//BiFunction, 两个参数, 一个返回值
+
+//BinaryOperator, 两个参数, 一个返回值, 且类型都相同
+
+//UnaryOperator, T和R类型相同
+```
+
+
+[slide]
+# Function-Predicate
+----
+```java
+@FunctionalInterface
+public interface Predicate<T> {
+
+    boolean test(T t);
+
+    default Predicate<T> and(Predicate<? super T> other) {
+        Objects.requireNonNull(other);
+        return (t) -> test(t) && other.test(t);
+    }
+
+}
+
+//BiPredicate, 两个参数
+```
+
+
+[slide]
+# Function-Supplier
+----
+```java
+@FunctionalInterface
+public interface Supplier<T> {
+
+    T get();
+
+}
+```
+
+
+
+[slide]
 # Stream API
 ----
 Stream API + Lambda == '爽'
 
 
 [slide]
-# Stream API-常用操作
+# Stream API-构造Stream对象
 ----
 ```java
-//初始化Stream对象
+//初始化Stream对象方式
+Stream<Object> empty = Stream.empty();
 Stream<String> list = Arrays.asList("a", "b", "c").stream();
 Stream<Entry<String, String>> entry = new HashMap<String, String>().entrySet().stream();
 Stream<String> of = Stream.of("a", "b", "c");
-Stream<Double> limit = Stream.generate(Math::random).limit(3);
-IntStream range = IntStream.range(0, 3);
+Stream<Double> limit = Stream.generate(Math::random).limit(10);
+Stream<Double> iterate = Stream.iterate(1d, i -> i + 1d).limit(10);
+Stream<Double> concat = Stream.concat(limit, iterate);
+Stream<Double> builder = Stream.<Double>builder().add(1d).add(2d).build();
+
+//Double, Int, Long有对应的Stream, 作为优化, 减少Box操作
+IntStream range = IntStream.range(0, 10);
 ```
 
+
+[slide]
+# Stream API-常用方法-forEach
+----
 ```java
-//例子
 Stream<String> list = Arrays.asList("a", "b", "c").stream();
-Stream<Entry<String, String>> entry = new HashMap<String, String>().entrySet().stream();
-Stream<String> of = Stream.of("a", "b", "c");
-Stream<Double> limit = Stream.generate(Math::random).limit(3);
-IntStream range = IntStream.range(0, 3);
+list.forEach(str -> {
+	System.out.println(str);
+});
 ```
+
+
+[slide]
+# Stream API-常用方法-filter
+----
+```java
+Stream<String> list = Arrays.asList("a", "b", null, "c").stream();
+list.filter(str -> {
+	return str != null;
+}).forEach(str -> {
+	System.out.println(str);
+});
+```
+
+
+[slide]
+# Stream API-常用方法-map
+----
+```java
+Stream<String> list = Arrays.asList("a", "b", "c").stream();
+list.map(str -> str + str).map(str -> str.length()).forEach(len -> {
+	System.out.println(len);
+});
+```
+
+
+[slide]
+# Stream API-常用方法-reduce
+----
+```java
+Stream<String> list = Arrays.asList("aa", "b", "c").stream();
+Integer reduce = list.reduce(0, (len, str) -> {
+	return len + str.length();
+}, (len1, len2) -> {
+	return len1 + len2;
+});
+System.out.println(reduce);
+```
+
+
+[slide]
+# Stream API-常用方法-collect
+----
+```java
+Stream<String> list = Arrays.asList("aa", "b", "c").stream();
+List<String> collect = list.collect(Collectors.toList());
+System.out.println(collect);
+```
+
+
+[slide]
+# Stream API-常见collector
+----
+* joining
+* toList
+* toSet
+* groupingBy
+
+
+[slide]
+# Stream API-常用方法-flatMap
+----
+```java
+Stream<ArrayList<String>> list = Arrays.asList(Lists.array("a", "b"), Lists.array("c", "d")).stream();
+List<String> collect = list.flatMap(arr -> arr.stream()).collect(Collectors.toList());
+System.out.println(collect);
+```
+
+
+[slide]
+# Stream API-常用方法-Stream其他方法
+----
+* distinct
+* sorted
+* peek
+* limit
+* skip
+* min, max
+* count
+* anyMatch, allMatch, noneMatch
+* findFirst, findAny
+* sum, average, summaryStatistics
+* distinct
+* distinct
+
+
+
+[slide]
+# 时间与日期
+----
+* distinct
+* sorted
+* peek
+* limit
+* skip
+* min, max
+* count
+* anyMatch, allMatch, noneMatch
+* findFirst, findAny
+* sum, average, summaryStatistics
+* distinct
+* distinct
+
+
+
+
+
+
 
 
