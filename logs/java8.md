@@ -1,6 +1,6 @@
-title: nodeppt markdown 演示
-speaker: 三水清
-url: https://github.com/ksky521/nodePPT
+title: java8
+speaker: 涂得胜
+url: https://github.com/haogrgr
 transition: slide3
 files: /js/demo.js,/css/demo.css,/js/zoom.js
 theme: moon
@@ -10,6 +10,7 @@ usemathjax: yes
 # Java 8
 
 涂得胜
+
 
 [slide]
 # 主要新特性
@@ -218,13 +219,22 @@ for (int i = 0; i < 2; i++) {
 
 
 [slide]
+# Lambda表达式-相关概念
+----
+* 调用点(CallSite)(JDK7) : 在这个点, 调什么方法
+* 方法句柄(MethodHandle)(JDK7) : 用类型类标识方法, 而不是名字, 和Method类似, 更小, 更底层, 更灵活, 也更难用
+* IDY指令(JDK7) : JDK7用来支持动态语言的指令
+
+
+[slide]
 # Lambda表达式-总结
 ----
 * 运行期生成字节码, 编译产生class文件体积变小(对比内名内部类方式)
 * 生成字节码不包含外部变量引用, 实例内存占用更小(对比内名内部类方式)
 * 序列化会有额外的开销
 * 尽量不引用外部变量, 避免每次new实例, 尽量不在for循环内使用
-* 每次new实例并不可怕~~
+* 每次new实例并不可怕
+
 
 
 [slide]
