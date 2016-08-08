@@ -12,10 +12,14 @@ import java.util.stream.IntStream;
 public class JDK8GroupByTest {
 
 	public static void main(String[] args) {
-		Map<Long, Long> collect = IntStream.range(0, 100).mapToObj(Long::valueOf)
+		Map<Long, Long> collect = IntStream.range(0, 10).mapToObj(Long::valueOf)
 				.collect(Collectors.groupingBy(i -> i, reducing((a, b) -> a)));
 
 		System.out.println(collect);
+
+		Map<Long, Long> collect2 = IntStream.range(0, 10).mapToObj(Long::valueOf)
+				.collect(Collectors.toMap(i -> i, i -> i));
+		System.out.println(collect2);
 	}
 
 	public static <T> Collector<? super T, ?, T> reducing(BinaryOperator<T> op) {
