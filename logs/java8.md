@@ -523,19 +523,22 @@ System.out.println(collect);
 [slide]
 # 时间与日期
 ----
-* distinct
-* sorted
-* peek
-* limit
-* skip
-* min, max
-* count
-* anyMatch, allMatch, noneMatch
-* findFirst, findAny
-* sum, average, summaryStatistics
-* distinct
-* distinct
+参考joda-time
+不可变
+线程安全
 
+
+[slide]
+# 时间与日期-概念
+----
+* Clock (时钟)
+* LocalDate (日期)
+* LocalTime (时间)
+* LocalDateTime (日期&时间)
+* Instant (时间点)
+* Duration (时间段-基于时间), Period(时间段-基于日期)
+* ZoneId (时区)
+* ZoneId (时区)
 
 
 
