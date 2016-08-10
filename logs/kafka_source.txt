@@ -197,7 +197,20 @@
 5.日志管理器启动 logManager.startup(){
 	主要是启动一些定时任务:
 	  a)LogManager.cleanupLogs, 根据配置清理日志文件(cleanupExpiredSegments[根据时间], cleanupSegmentsToMaintainSize[根据大小]).
+	  Log.deleteOldSegments {
+	      按时间和按大小逻辑类似, 按时间则是根据每个Segment的最后修改时间判断; 按大小, 则是依次累加每个LogSegment的大小, 当累计大小大于配置大小后的所有Segment都删除.
+	      注意, 这里不删除当前活动的Segment
+	      
+	      获取到要删除的Segment后, 依次调用kafka.log.Log.deleteSegment方法{
+	          首先将Segment从Log.segments中删除, 
+	          然后重命名Segment的index和log文件为.deleted后缀
+	          然后创建异步任务, 异步的删除Segment文件
+	      }
+	  }
+	  
 	  b)LogManager.flushDirtyLogs, 根据配置定时刷盘, 刷盘后, 会更新恢复点(log.recoveryPoint).
+	  
+	  
 	  c)LogManager.checkpointRecoveryPointOffsets, 根据配置, 将每个Log.recoveryPoint刷盘, 创建checkpointRecoveryPointOffset文件, 用途前面2.4.1有说.
 	
 	启动cleaner线程
