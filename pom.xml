@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.haogrgr</groupId>
@@ -61,10 +60,14 @@
 	</repositories>
 
 	<pluginRepositories>
-		<!-- <pluginRepository> <id>central</id> <snapshots> <enabled>false</enabled> 
-			</snapshots> <name>Public Repositories</name> <url>http://maven.oschina.net/content/groups/public/</url> 
-			<url>http://maven.wso2.org/nexus/content/groups/public/</url> <url>http://jcenter.bintray.com/</url> 
-			</pluginRepository> -->
+		<pluginRepository>
+			<id>central</id>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<name>Public Repositories</name>
+			<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+		</pluginRepository>
 	</pluginRepositories>
 
 	<dependencies>

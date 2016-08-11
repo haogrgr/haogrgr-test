@@ -7,7 +7,7 @@
 			</PatternLayout>
 		</Console>
 
-		<RollingFile name="ROLLING_FILE" fileName="/logs/haogrgr-test.log" filePattern="/logs/haogrgr-test-%d{yyyy-MM-dd}-%i.log">
+		<RollingFile name="ROLLING_FILE" fileName="/tmp/logs/haogrgr-test.log" filePattern="/tmp/logs/haogrgr-test-%d{yyyy-MM-dd}-%i.log">
 			<PatternLayout>
 				<pattern>[%t][%d{yyyy-MM-dd HH:mm:ss.SSS}][%c.%M:%L][%p]%x : %m%n</pattern>
 			</PatternLayout>

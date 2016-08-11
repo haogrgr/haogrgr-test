@@ -11,7 +11,7 @@ public class ProducerMain {
 	public static void main(String[] args) throws Exception {
 		Producer<String, String> producer = getProducer("localhost:9092");
 
-		for (int i = 0; i < 50000; i++) {
+		for (int i = 0; i < 50; i++) {
 			sendMsg(producer, "haogrgr", i + "", i + "");
 			//Thread.sleep(10);
 		}
