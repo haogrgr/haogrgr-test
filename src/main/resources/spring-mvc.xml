@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd   
        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd   
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd   
@@ -12,7 +9,7 @@
 
 	<!-- 把标记了@Controller注解的类转换为bean -->
 	<context:annotation-config />
-	
+
 	<context:property-placeholder location="classpath:config.properties" />
 	
 	<!-- 组件扫描 -->
@@ -49,7 +46,7 @@
 	<mvc:resources mapping="/css/**" location="/css/" cache-period="31556926" />
 	<mvc:resources mapping="/img/**" location="/img/" cache-period="31556926" />
 	<mvc:resources mapping="/js/**" location="/js/" cache-period="31556926" />
-	<mvc:resources mapping="/app/**" location="/js/" cache-period="0"  />
+	<mvc:resources mapping="/app/**" location="/js/" cache-period="0" />
 	<mvc:resources mapping="/oth/**" location="/js/" cache-period="31556926" />
 
 	<!-- 对模型视图名称的解析，即在模型视图名称添加前后缀 -->
