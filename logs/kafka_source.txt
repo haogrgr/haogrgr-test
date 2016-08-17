@@ -115,7 +115,7 @@
 						删除所有以[.cleaned]结尾的文件(log和index), 什么时候会产生该后缀的文件?
 						  a)Cleaner.clean中, 会将多个Segment清理成一个Segment, 然后交换到Log.segments中(清理:同key的消息, 去最后的value), 交换过程中, 先是将多个Segment中的日志(合并同key消息)写入到.cleaned文件中, 写完后, 重命名为.swap文件, 然后删除老Segment文件, 最后去掉.swap后缀;
 						可以看到, 交换步骤为分为三步, 第一步先写.cleaned文件, 保证文件全部清理完后再操作, 然后重命名为.swap文件, 这时可以删除老的文件了, 删除操作参考上面的.deleted文件操作, 最后重命名, 去掉.swap后缀, 中间任何一步异常, 都不会破坏文件完整性.
-						一个疑惑: 当重命名为.swap成功, 但是马上carsh了, 导致老的log没有移除, 那么下次启动时, 老的日志依然存在, 如何处理(猜测: 因为是clean, 所以只会clean达到调节的log, 下次启动会继续clean操作, 待验证TODO)
+						 一个疑惑: 当重命名为.swap成功, 但是马上carsh了, 导致老的log没有移除, 那么下次启动时, 老的日志依然存在, 如何处理(猜测: 因为是clean, 所以只会clean达到调节的log, 下次启动会继续clean操作, 待验证TODO)
 						
 						处理.swap文件, 如上面说的, 当swap操作进行到一半而挂掉了, 就可能会有.swap文件, 这里需要完成swap操作, 重命名去掉.swap后缀, 删除索引, 后续会判断相关的log文件是否有对应的index文件, 没有会重建索引文件.
 					}
@@ -196,36 +196,90 @@
 
 5.日志管理器启动 logManager.startup(){
 	主要是启动一些定时任务:
-	  a)LogManager.cleanupLogs, 根据配置清理日志文件(cleanupExpiredSegments[根据时间], cleanupSegmentsToMaintainSize[根据大小]).
-	  Log.deleteOldSegments {
-	      按时间和按大小逻辑类似, 按时间则是根据每个Segment的最后修改时间判断; 按大小, 则是依次累加每个LogSegment的大小, 当累计大小大于配置大小后的所有Segment都删除.
-	      注意, 这里不删除当前活动的Segment
-	      
-	      获取到要删除的Segment后, 依次调用kafka.log.Log.deleteSegment方法{
-	          首先将Segment从Log.segments中删除, 
-	          然后重命名Segment的index和log文件为.deleted后缀
-	          然后创建异步任务, 异步的删除Segment文件
-	      }
-	  }
-	  
-	  b)LogManager.flushDirtyLogs, 根据配置定时刷盘, 刷盘后, 会更新恢复点(log.recoveryPoint).
-	  
-	  
-	  c)LogManager.checkpointRecoveryPointOffsets, 根据配置, 将每个Log.recoveryPoint刷盘, 创建checkpointRecoveryPointOffset文件, 用途前面2.4.1有说.
 	
-	启动cleaner线程
+	a)LogManager.cleanupLogs, 根据配置清理日志文件(cleanupExpiredSegments[根据时间], cleanupSegmentsToMaintainSize[根据大小]).
+	Log.deleteOldSegments {
+		按时间和按大小逻辑类似, 按时间则是根据每个Segment的最后修改时间判断; 按大小, 则是依次累加每个LogSegment的大小, 当累计大小大于配置大小后的所有Segment都删除.
+		注意, 这里不删除当前活动的Segment
+		 获取到要删除的Segment后, 依次调用kafka.log.Log.deleteSegment方法{
+			首先将Segment从Log.segments中删除, 
+			然后重命名Segment的index和log文件为.deleted后缀
+			然后创建异步任务, 异步的删除Segment文件
+		}
+	}
+	
+	b)LogManager.flushDirtyLogs, 根据配置定时刷盘, 刷盘后, 会更新恢复点(log.recoveryPoint).
+	LogManager.flushDirtyLogs{
+		遍历logs
+		val timeSinceLastFlush = time.milliseconds - log.lastFlushTime
+		if(timeSinceLastFlush >= log.config.flushMs){
+			log.flush
+        }
+	}
+	Log.flush{
+		通过treemap找到最新offset和上一次recoveryPoint(恢复点)的Segment, 依次调用Segment.flush方法, 内部调用index和logFile的force方法刷盘
+		然后记录最新的recoveryPoint(恢复点), 更新lastflushedTime
+	}
+	
+	c)LogManager.checkpointRecoveryPointOffsets, 根据配置, 将每个Log.recoveryPoint刷盘, 创建checkpointRecoveryPointOffset文件, 用途前面2.4.1有说.
+	
+	然后, 启动cleaner线程
 	cleaner.startup() {
-		内容比较多, 见5.1
+		大概作用就是, 清理日志, 具体方法是, 对同一个key的消息, 保留offset最大的消息体, 其他的丢弃, 对于空消息体, 则表示删除.
+		可以看到, 适合某些场景, 比如说用kafka来同步某个属性的值, 每变动一次, 就发一次消息, 消费者更新为最新值, 这种情况, 新的客户端对于某一key只需要获取最新的一条消息的值就行了.
+		有点类似于redis的aof rewrite.
+		然后有时候清理后, 日志文件变得很小, 就需要合并多个日志文件.
+		
+		因为清理过程需要大量的IO操作, 所以通过Throttler类来对限速, 防止对正常的写日志产生影响
+		因为清理是一个长时间的过程, 且是多线程的, 所以需要有个地方标记这个分区正在清理, 所以就有了LogCleanerManager, 来存放状态信息
+		
+		内容比较多, 具体见5.1
 	}
 	
 }
+
 
 5.1.Cleaner线程 {
 	
 	根据配置, 创建LogCleaner, 如果cleanerConfig.enableCleaner == true
 	new LogCleaner(cleanerConfig, logDirs, logs, time = time) {
+		创建清理管理器, 主要负责维护分区在clean过程中的状态信息
+		private[log] val cleanerManager = new LogCleanerManager(logDirs, logs);
+		
+		限流器, 防止clean占用的IO可控, 线程安全, 多个清理线程共用一个.
+		private val throttler = new Throttler(desiredRatePerSec = config.maxIoBytesPerSecond, checkIntervalMs = 300, throttleDown = true, "cleaner-io", "bytes", time = time)
+		
+		//清理线程
+		val cleaners = (0 until config.numThreads).map(new CleanerThread(_))
+	}
+	
+	先看和业务关系不大的Throttler{
+		累加计数器, 然后判断时间是不是该检查速度了, 
+		如果要检查速度, 就算出当前的速度, 和配置的数度对比, 看看是不是需要调整
+		如果需要调整, 具体算法思路为下:
+		具体问题也抽象为这样的问题, 两个人以不同的速度走了一秒钟, 求, 一秒钟后, 快的人停多久, 才能等到慢的人.
+		具体解法就是, 根据速度和时间, 算出距离差距, 然后通过   (慢人的速度 / 距离差距   = 慢的人要赶的时间  = 快的人要等的时间)
+		
+		这里kafka的实现类似, 不过省略了中间过程, 所以比较难看懂, 具体可以看成下面代码
+		if(needAdjustment) {
+            val desiredRateMs = desiredRatePerSec / Time.MsPerSec.toDouble //限制的速度(慢人速度)
+    	    val elapsedMs = elapsedNs.toDouble / Time.NsPerMs              //已经跑了多久时间
+            val diffBytes = observedSoFar - (desiredRateMs * elapsedMs)    //快人跑的距离   - (慢人速度  * 时间  = 慢人跑的距离) = 差距
+            val newSleepTime = round(diffBytes / desiredRateMs)            //差距   / 慢人速度  = 要等待的时间
+            if(newSleepTime > 0) {
+                time.sleep(newSleepTime)
+            }
+        }
+		把中间过程化简后, 就是kafka的写法
+	}
+	
+	在来看看维护清理状态的 new LogCleanerManager(logDirs, logs) {
+		
 		
 	}
+	
+	
+	
 }
 
 
