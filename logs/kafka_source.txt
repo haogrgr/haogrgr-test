@@ -274,11 +274,52 @@
 	}
 	
 	在来看看维护清理状态的 new LogCleanerManager(logDirs, logs) {
+		用来保存清理进度快照, 保存的是每个分区上次清理到的位置(firstDirtyOffset), firstDirtyOffset之前的表示已经清理过了, 每次清理完成会更新快照文件.
+		写:当clean完成的时候, 会调用LogCleanerManager.doneCleaning来更新分区最新的offset快照
+		读:Clean线程中, 会不断通过LogCleanerManager.grabFilthiestLog()来获取脏日志, 而判断脏日志, 是通过获取到快照中记录的firstDirtyOffset, 从而计算出脏日志大小, 来判断是否需要清理.
+		清理需要策略, 如果不记录清理进度, 则每次都做全部的扫描, 低效, 所以通过保存clean进度快照来记录清理进度, 减少不必要的清理.
+		val checkpoints = logDirs.map(dir => (dir, new OffsetCheckpoint(new File(dir, offsetCheckpointFile)))).toMap
 		
+		一个Map, 用来记录分区正在进行中的clean状态信息. 有三个状态(LogCleaningInProgress, LogCleaningAborted, LogCleaningPaused)
+		当判断到分区脏日志大于阀值时, 会进入LogCleaningInProgress状态, 开始清理, 当清理完成时, 更新快照, 讲分区从inProgress中移除.
+		LogCleaningInProgress => LogCleaningAborted : 日志截取(truncate)时, 需要等待Clean完成, 且开始日志截取后, 就不能进行Clean, 需要等待日志截取完成, 才能继续Clean, 这个是通过LogCleaningAborted状态来实现的
+		过程是这样的, 当日志截取时, 如果正在进行Clean, 则LogCleaningInProgress => LogCleaningAborted, 然后等待状态到LogCleaningPaused, 当Clean完成时, 会进行LogCleaningAborted => LogCleaningPaused
+		这样就实现了截取日志时, Clean已经完成, 且分区被标记为LogCleaningPaused状态, 这样Clean线程后续也会忽略这个分区, 完成日志截取后, 通过CleanerManager.resumeCleaning方法, 将分区状态信息从Map中移除, 等待下次clean
+		同样, 删除Log时, 也要做类似操作, 这时, 先将Log实例从Log池中移除, 然后保证Clean已经完成, 因为Log已经不再池中了, 所以下次Clean也会再Clean了, 所以这里用的是Cleaner.abortCleaning, 里面组合了abortAndPauseCleaning, resumeCleaning
+		val inProgress = mutable.HashMap[TopicAndPartition, LogCleaningState]()
 		
+		好了, LogCleanerManager基本功能清楚了, 接下来回到LogCleaner
 	}
 	
-	
+	最好看看Clean线程 CleanerThread extends ShutdownableThread {
+		ShutdownableThread里面的run方法里循环调用子类的doWork方法, 所以具体逻辑我们看doWork方法
+		
+		应该是具体Clean操作逻辑的类
+		val cleaner = new Cleaner() {
+			清理过程中的状态信息, 如开始时间, 读取字节数等信息, 一个用来表是当前的状态, 一个用来表示上一次完成的状态
+			val statsUnderlying = (new CleanerStats(time), new CleanerStats(time))
+			
+			用来合并同Key消息的Map
+			offsetMap = new SkimpyOffsetMap(memory = math.min(config.dedupeBufferSize / config.numThreads, Int.MaxValue).toInt, hashAlgorithm = config.hashAlgorithm)
+		
+			
+		}
+		
+		doWork逻辑 cleanOrSleep {
+			调用cleanerManager.grabFilthiestLog(), 扫描所有Log获取要清理的分区, 具体条件为: 1)Log配置开启compact, 2)没有处于inProgress中, 3)脏日志大于minCleanableRatio比例, 4)取最脏的那个.
+			grabFilthiestLog返回LogToClean对象, 里面包含脏日志比例, 字节数, firstDirtyOffset等信息
+			
+			清理逻辑 cleaner.clean(cleanable) {
+				清理Clean过程中的状态信息stats.clear(), 准备开始新的Clean过程
+				
+				
+				
+			}
+			
+			日志记录  recordStats, 记录上次Clean状态this.lastStats = stats, 顺便交换Clean状态类(Cleaner.statsUnderlying.swap)
+		}
+				
+	}
 	
 }
 
