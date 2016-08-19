@@ -299,9 +299,17 @@
 			清理过程中的状态信息, 如开始时间, 读取字节数等信息, 一个用来表是当前的状态, 一个用来表示上一次完成的状态
 			val statsUnderlying = (new CleanerStats(time), new CleanerStats(time))
 			
-			用来合并同Key消息的Map
-			offsetMap = new SkimpyOffsetMap(memory = math.min(config.dedupeBufferSize / config.numThreads, Int.MaxValue).toInt, hashAlgorithm = config.hashAlgorithm)
-		
+			用来合并同Key消息的Map, 主要是索引用, 先读一遍脏日志, 建立Map
+			offsetMap = new SkimpyOffsetMap(memory = math.min(config.dedupeBufferSize / config.numThreads, Int.MaxValue).toInt, hashAlgorithm = config.hashAlgorithm){
+				既然是hash, 就先看hash算法吧
+				private def positionOf(hash: Array[Byte], attempt: Int): Int = {
+					具体就是hash之后的值是一个byte数组, 当冲突次数小于(hashSize - 4)时, 取Int(hash_byte[attempt, attempt + 3]), 
+					当冲突次数高于(hashSize - 4)时, 取Int(hash_byte[12, hashSize]) + (attempt - hashSize + 4)
+					即先求hash, 然后冲突时, 使用简单的策略来继续新的hash值, 来计算新的位置
+				}
+				内部维护一个ByteBuffer, 不存储原始Key, 只存key的hash值, 碰撞后, 继续新的位置, 读取时类似, 读取, 比对, hash不相对, 计算新的hash, 再读取比对
+				碰撞挺高的, 越到后面, 插入效率越低, 碰撞高了, 读取效率也较低, 不支持删除(1000元素的容量, 插满后, 碰撞率为19左右)
+			}
 			
 		}
 		
