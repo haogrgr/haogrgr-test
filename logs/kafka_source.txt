@@ -318,7 +318,19 @@
 			grabFilthiestLog返回LogToClean对象, 里面包含脏日志比例, 字节数, firstDirtyOffset等信息
 			
 			清理逻辑 cleaner.clean(cleanable) {
-				清理Clean过程中的状态信息stats.clear(), 准备开始新的Clean过程
+				清理Clean过程中的统计信息stats.clear(), 准备开始新的Clean过程
+				
+				先构建出Key索引Map, 清理范围是[firstDirtyOffset, activeSegment.baseOffset], 即清理除活动segment外的段
+				val upperBoundOffset = log.activeSegment.baseOffset
+				val endOffset = buildOffsetMap(log, cleanable.firstDirtyOffset, upperBoundOffset, offsetMap) + 1 {
+					map.clear(), 清空offsetMap, 准备建索引
+					根据offsetMap容量和负载因子, 计算出最多能清理到的offset(minStopOffset)		
+					然后遍历segment, 读取文件(有限流), 构建map, buildOffsetMapForSegment(){
+						不细说, 具体就是读取文件内容到buffer, 然后通过ByteBufferMessageSet来遍历消息, 建立map, 如果buffer不够读一条消息的, 就增大, 继续读
+						返回索引的最后一条消息的offset, 处理完后, 会恢复buffer
+					}
+					返回索引的最后一条消息的offset, 加1之后, 就是真实的清理上界offset(不含自身)
+				}
 				
 				
 				
