@@ -108,14 +108,14 @@
 						  c)主从同步时, 当从落后太多(从的最大offset小于主的最小offset(可能日志会被清理了)), 则从会logManager.truncateFullyAndStartAt, 来删除老的日志, 从新的offset开始;
 						  d)主从同步时, 由于分区Leader的变化, 之前和旧Leader同步的数据可能不是最新的, 需要删除highWatermark(offset)(TODO)之后的数据, 防止不一致, ReplicaManager.makeFollowers;
 						 删除步骤为:
-						  a)先讲要删除的LogSegment从log.segments中移除;
+						  a)先将要删除的LogSegment从log.segments中移除;
 						  b)再重命名日志和索引文件名后缀为.deleted;
 						  c)最后提交异步任务, 任务中再删除日志和对应的索引文件.
 						
 						删除所有以[.cleaned]结尾的文件(log和index), 什么时候会产生该后缀的文件?
 						  a)Cleaner.clean中, 会将多个Segment清理成一个Segment, 然后交换到Log.segments中(清理:同key的消息, 去最后的value), 交换过程中, 先是将多个Segment中的日志(合并同key消息)写入到.cleaned文件中, 写完后, 重命名为.swap文件, 然后删除老Segment文件, 最后去掉.swap后缀;
 						可以看到, 交换步骤为分为三步, 第一步先写.cleaned文件, 保证文件全部清理完后再操作, 然后重命名为.swap文件, 这时可以删除老的文件了, 删除操作参考上面的.deleted文件操作, 最后重命名, 去掉.swap后缀, 中间任何一步异常, 都不会破坏文件完整性.
-						 一个疑惑: 当重命名为.swap成功, 但是马上carsh了, 导致老的log没有移除, 那么下次启动时, 老的日志依然存在, 如何处理(猜测: 因为是clean, 所以只会clean达到调节的log, 下次启动会继续clean操作, 待验证TODO)
+						 一个疑惑: 当重命名为.swap成功, 但是马上carsh了, 导致老的log没有移除, 那么下次启动时, 老的日志依然存在, 如何处理(猜测: 因为是clean, 所以只会clean达到调节的log, 下次启动会继续clean操作, 结论: 启动时rename失败, 导致启动异常, 无法启动, 手动处理)
 						
 						处理.swap文件, 如上面说的, 当swap操作进行到一半而挂掉了, 就可能会有.swap文件, 这里需要完成swap操作, 重命名去掉.swap后缀, 删除索引, 后续会判断相关的log文件是否有对应的index文件, 没有会重建索引文件.
 					}
@@ -165,7 +165,7 @@
 						
 						非正常结束, 需要恢复recoveryPoint(前面2.4.1有讲)之后的LogSegment对应的日志, 通过Log.segments的方法, 获取大于recoveryPoint的记录,
 						遍历需要恢复操作的LogSegment列表, 对每个LogSegment, 遍历日志文件, 重建索引, 遍历的时候校验消息(computeChecksum等), 一旦某条消息出问题了, 这条消息和它后面的数据都会被删除.
-						同时, 改LogSegment之后的LogSegment也会被删除.
+						同时, 该LogSegment之后的LogSegment也会被删除.
 						
 						// reset the index size of the currently active log segment to allow more entries
 						activeSegment.index.resize(config.maxIndexSize)
@@ -264,7 +264,7 @@
 		if(needAdjustment) {
             val desiredRateMs = desiredRatePerSec / Time.MsPerSec.toDouble //限制的速度(慢人速度)
     	    val elapsedMs = elapsedNs.toDouble / Time.NsPerMs              //已经跑了多久时间
-            val diffBytes = observedSoFar - (desiredRateMs * elapsedMs)    //快人跑的距离   - (慢人速度  * 时间  = 慢人跑的距离) = 差距
+            val diffBytes = observedSoFar - (desiredRateMs * elapsedMs)    //快人跑的距离   - (慢人速度  * 已经跑了多久时间  = 慢人跑的距离) = 差距
             val newSleepTime = round(diffBytes / desiredRateMs)            //差距   / 慢人速度  = 要等待的时间
             if(newSleepTime > 0) {
                 time.sleep(newSleepTime)
@@ -332,17 +332,61 @@
 					返回索引的最后一条消息的offset, 加1之后, 就是真实的清理上界offset(不含自身)
 				}
 				
+				val deleteHorizonMs = 计算一个时间点, 用来判断消息是否需要忽略(删除), 即压缩的过程同时做清理的工作, 根据配置, 获取已清理过的最大offset的文件的修改时间, 没有文件则取0
 				
+				然后将offset[0, endOffset]的segment拿出来处理(即0到offsetMap中已索引的最大的offset), 根据大小进行group操作, 因为以前可能进行过clean操作, 导致segment可能变小, 这里group成配置指定的大小, 再处理.
+				group后的结构是一个List<List<Segment>>, 内层的List是要合并的segement
 				
-			}
+				遍历group, 对里面的每个组做clean操作 cleanSegments(log, group, offsetMap, deleteHorizonMs){
+					接下来就是读老文件, 合并同key的offset, 在写到临时文件, 最后重命名文件, 删除老文件, 换成新文件, 具体4.1有提到
+					
+					先创建log和index的临时文件(.cleaned), 如果存在, 则表示上次处理到一半的文件, 直接删除, 处理过的消息, 先写到.clean文件中, 防止写到一半挂了, 保证一致完整性.
+					同时创建对应的OffsetIndex和LogSegment对象
+					
+					然后对每个segment进行处理 cleanInto(log.topicAndPartition, old, cleaned, map, retainDeletes){
+						处理分区前, 先检查分区是不是处于LogCleaningAborted状态(truncate时会进入这个状态, 具体看5.1), 是就抛异常结束这里处理
+						
+						然后清理readbuffer, writebuffer, 然后借助ByteBufferMessageSet对象来读取消息, 中间会判断readbuffer是不是太小(1条msg都读不到), 太小就扩容和前面buildOffsetMap类似,
+						先吧消息读到readbuffer里面(即一次读多条, 不够一条消息就需要扩容), 再对于每条消息, 获取到key和offset, 然后根据前面构建的OffsetMap来判断这条消息是不是留(offset要大于或等于OffsetMap里面的(map里面是最大的offset)), 
+						也会判断这个文件是不是达到了删除的条件, 要删的文件, 则消息不用处理, 最后, 如果消息体为空, 表示要忽略这条消息
+						
+						将消息写到writebuffer里面去, 因为readbuffer和writebuffer一样大, 且扩容的时候一起扩容的, 所以不怕writebuffer大小不够, 然后将writebuffer写到segment中去
+						
+						最后还原readbuff, writebuffer, clean过程中, 也会有类似于进度收集, IO限速等控制
+					}
+					
+					好了, 一组segment已经clean成一个了, 接着trim一下index文件到真实的大小, 然后flush日志和索引到文件, 接着恢复一下文件的lastModified, 因为不恢复会导致本来达到删除时间的文件继续存在
+					
+					最后, 交换一下, 用新的segment替换老的segment, log.replaceSegments(cleaned, segments){
+						具体4.1有提到, 先将新的segment文件的后缀从.cleaned重命名到.swap文件, 重命名成功后, 如果进程挂了, 启动时loadSegments会完成后续的操作
+						如果刚重命名为.swap, 老的log还没有删除掉, 则下次启动的时候, loadSegments中重命名会失败, 导致启动失败, 可以手动删除老的log文件再启动
+						
+						将新的segment放入到log.segments中, 将老的一个个移除(除了刚才put的, put新的seg相当于删除了这个老的seg, 所以这里不移除了), 
+						然后将老的文件重命名为.deleted文件, 异步线程中删除老的segment文件 , 最后, 将新的segment重命名, 去掉swap后缀, 完成clean
+					}
+					
+				}cleanSegments
+				
+			} cleaner.clean
 			
 			日志记录  recordStats, 记录上次Clean状态this.lastStats = stats, 顺便交换Clean状态类(Cleaner.statsUnderlying.swap)
-		}
+			好了, clean操作总数是结束了
+			
+		}cleanOrSleep
 				
-	}
+	}CleanerThread
 	
 }
 
+
+6.LogManager总结{
+	首先, kafka对于一个topic, 会分为多个partition, 一个partition一个文件夹, 分区下面又分为多个segment, segment中又分为log和index, .log文件是最终的消息存放文件
+	
+	log文件负责消息的读写, index负责index的读写, segment聚合index和log, 提供一个统一的读写接口, 屏蔽索引等相关的操作细节, 
+	而Log聚合segment, 维护lastOffset, 统一flush操作, 屏蔽掉文件滚动操作的细节, 提供一个更加上层的接口, 屏蔽底层文件的读写.
+	
+	LogManager则负责提供快照, 日志Clean, 相关定时任务管理等功能, 外部通过LogManager来获取Log对象读写消息
+}
 
 
 
