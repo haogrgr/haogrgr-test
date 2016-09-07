@@ -79,12 +79,14 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			//见Doug Lea大师的论文: http://ifeve.com/aqs-2/ (3.3 队列一节)
 			//next链接仅是一种优化。如果通过某个节点的next字段发现其后继结点不存在（或看似被取消了），
 			//总是可以使用pred字段从尾部开始向前遍历来检查是否真的有后续节点。
+			//MCS队列和LCH队列的区别是: MCS是通过.next属性来链表, LCH是.prev属性, 
+			//则入队的时候LCH只需要先修改自己的prev, 在cas更新tail就好, 而MCS就需要先获取tail, 然后修改tail.next属性, 步骤更多, 更复杂
 			tobeUnpark = null;
 			for (Node t = tail; t != null && t != node; t = t.prev) {
 				if (t.waitStatus <= 0) {
 					tobeUnpark = t;
 					//这里不break, 是为了找到最接近head的有效节点, 来唤醒
-					//TODO:为啥不从头开始遍历, 而是从尾巴开始
+					//为啥不从头开始遍历, 而是从尾巴开始, next是优化, 不可靠
 				}
 			}
 		}
@@ -148,6 +150,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			return;
 		}
 
+		//减少不必要的唤醒
 		node.thread = null;
 
 		//跳过状态为取消的前驱节点
@@ -186,12 +189,14 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 				}
 			}
 			else {
-				//1.首节点->要唤醒node.next
-				//2.修改为pred状态为SIGNAL失败(可能是prev被(成head然后realease了)或(cancel)了) -> 唤醒吧
+				//1.首节点 -> 意味着release后, 唤醒的是当前节点, 而当前节点已经cancal了, 需要传播下去, 唤醒node.next后继结点, 否则会导致后续节点没人去唤醒
+				//2.修改为pred状态为SIGNAL失败(可能是prev被(成head然后realease了)或(cancel)了) -> SIGNAL标识后继结点可以安全的park了, 
 				//3.pred.thread为空(为空就表示pred被取消了或成head了, 这时就要唤醒后继了) -> 唤醒吧
 				
 				//node的出队, 交给node.next = node, unparkSuccessor里面unpark, 然后后面的节点会将node出队列, 
 				//走到这里说明pred的pred要么为null(head), 要么无效
+				
+				//如果这里不唤醒的话, 可能head解锁的时候, 当前节点正再取消, 导致唤醒没有传播下去, 造成死锁
 				unparkSuccessor(node);
 			}
 
@@ -221,12 +226,25 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			//前驱状态满足(0 or CONDITION or PROPAGATE)情况下啊, 更新前驱节点状态为SIGNAL, 
 			//意思就是, 我这里tryAcquire失败了, 要阻塞了, 标记下前驱节点状态为SIGNAL, 好在后面唤醒我.
 			//这里不需要判断是否修改成功, 因为外部是循环, 所以等待下一次进入此方法就行了, 返回false, 继续重试.
+			//设置完成后, 外层会继续尝试一次tryAcquire
 			compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
 		}
 		return false;
 	}
 
 	//等待, 直到前驱节点为head, 且tryAcquire成功
+	//模式为, 检查资源, 不满足, 则通知前驱节点解锁后要唤醒我(前驱节点SIGNAL), 然后再次尝试获取资源, 再次获取失败, 且状态(SIGNAL)设置好了, 就可以安全的park了
+	//如果不做两次检查, 可能导致当prev.state还没有被设置为SIGNAL时, prev就已经unlock了, 这时没有唤醒后继结点, 而后继结点刚刚设置完prev.state, 直接park了, 导致一直不会被唤醒.
+	//while(!tryAcquire()){
+	//    prev.state = SIGNAL;
+	//    if(!tryAcquire()){
+	//        park();
+	//    }else{
+	//        获取到锁的逻辑, 比如这里就是设置head
+	//        break;
+	//    }
+	//}
+	//这里的过程类似上面, 大概就是设置完唤醒标记后, 会再次检查是否满足申请条件
 	final boolean acquireQueued(final Node node, int arg) {
 		boolean failed = true;
 		try {
