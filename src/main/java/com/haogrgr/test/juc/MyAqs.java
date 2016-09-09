@@ -64,7 +64,10 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 	//唤醒node后继的有效节点, 被cancelAcquire, doReleaseShared, release方法调用.
 	private void unparkSuccessor(Node node) {
 
-		//如果状态不为0或CANCELLED, 则改为0, 没改成功也不管 TODO: 为啥没改成功不用管
+		//走cancelAcquire来到这里的话, 就不改状态为0, 因为一旦node进入到cancel就不会进入其他状态了
+		//为0状态的话, 就不需要修改状态了, 设置为0状态, 是为了表示, 走到这里已经要unpark后续节点了, 清除signel状态
+		//这里修改失败, 不需要管, 什么时候会失败, cancelAcquire不会修改, release时, 状态为0不需要修改, 状态为Signal, 后面的线程也不会修改head状态
+		//所以这里只有doReleaseShared时, 可能出现修改失败的情况, TODO
 		int ws = node.waitStatus;
 		if (ws < 0) {
 			compareAndSetWaitStatus(node, ws, 0);
@@ -153,7 +156,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 		//减少不必要的唤醒
 		node.thread = null;
 
-		//跳过状态为取消的前驱节点
+		//找到node前面第一个有效的pred节点
 		Node pred = node.prev;
 		while (pred.waitStatus > 0) {
 			node.prev = pred = pred.prev;
@@ -176,7 +179,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 					/*    */|| (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) //2.2
 					&& pred.thread != null //3.1
 			) {
-				//1.1.非首节点(意味着不需要唤醒后继节点)
+				//1.1.非首节点(意味着可能不需要唤醒后继节点)
 				//2.1.pred状态为SIGNAL, 意味着不用修改状态为SIGNAL
 				//2.2.pred状态不为SIGNAL, 则修改为SIGNAL, 标记后续节点要唤醒, 因为走到这里, 表示node不为tail(前面的if判断).
 				//3.1.pred.thread不为空(为空就表示pred被取消了或成head了, 这时就要唤醒后继了)
@@ -190,8 +193,8 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			}
 			else {
 				//1.首节点 -> 意味着release后, 唤醒的是当前节点, 而当前节点已经cancal了, 需要传播下去, 唤醒node.next后继结点, 否则会导致后续节点没人去唤醒
-				//2.修改为pred状态为SIGNAL失败(可能是prev被(成head然后realease了)或(cancel)了) -> SIGNAL标识后继结点可以安全的park了, 
-				//3.pred.thread为空(为空就表示pred被取消了或成head了, 这时就要唤醒后继了) -> 唤醒吧
+				//2.修改为pred状态为SIGNAL失败(可能是prev被(成head然后realease了)或(cancel)了) -> SIGNAL标记后继结点可以安全的park了, 标记失败, 则需要唤醒
+				//3.pred.thread为空(为空就表示pred被取消了或成head了, 这时就要唤醒后继了) -> 唤醒吧, 否则唤醒链到这里就断了, 后续节点没人唤醒了
 				
 				//node的出队, 交给node.next = node, unparkSuccessor里面unpark, 然后后面的节点会将node出队列, 
 				//走到这里说明pred的pred要么为null(head), 要么无效
