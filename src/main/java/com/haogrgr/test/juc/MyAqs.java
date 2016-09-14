@@ -80,10 +80,10 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			//这里不从头开始遍历是因为: 从头开始的话, 就是t.next一路遍历下去
 			//但是AQS是LCH的变种, next是优化, 不是原子性更新的, 不可靠
 			//见Doug Lea大师的论文: http://ifeve.com/aqs-2/ (3.3 队列一节)
-			//next链接仅是一种优化。如果通过某个节点的next字段发现其后继结点不存在（或看似被取消了），
+			//next链接仅是一种优化。如果通过某个节点的next字段发现其后继结点不存在(或看似被取消了)
 			//总是可以使用pred字段从尾部开始向前遍历来检查是否真的有后续节点。
-			//MCS队列和LCH队列的区别是: MCS是通过.next属性来链表, LCH是.prev属性, 
-			//则入队的时候LCH只需要先修改自己的prev, 在cas更新tail就好, 而MCS就需要先获取tail, 然后修改tail.next属性, 步骤更多, 更复杂
+			//MCS队列和LCH队列的区别是: MCS是通过.next属性来链表, LCH是.prev属性, LCH轮询前节点状态, MCS前节点设置后置节点状态, 后置节点轮询自己状态
+			//则入队的时候LCH只需要先修改自己的prev, 在cas更新tail就好, 而MCS就需要先获取tail, 然后修改tail.next, 最好更新tail属性, 步骤更多, 同步更复杂
 			tobeUnpark = null;
 			for (Node t = tail; t != null && t != node; t = t.prev) {
 				if (t.waitStatus <= 0) {
@@ -136,6 +136,10 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 		Node h = head;//旧的head
 		setHead(node);//设置新的头节点
 
+		//1.propagate > 0 , 表示还可以继续共享申请, doReleaseShared唤醒共享类型的后继者继续试
+		//2.(propagate == 0) && (h.waitStatus < 0), 前head状态小于零, 对于唤醒来说-1和-3没区别, 状态为0, 表示没有后继结点需要唤醒
+		
+		
 		if (propagate > 0 //还可以继续tryAcquireShared, 可能等于0
 				|| h == null || h.waitStatus < 0 //原来的head等待状态为PROPAGATE 猜测, 前head已经release了, 所以这里可以继续unpark
 				|| (h = head) == null || h.waitStatus < 0) { //新的head等待状态小于0
@@ -230,6 +234,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			//意思就是, 我这里tryAcquire失败了, 要阻塞了, 标记下前驱节点状态为SIGNAL, 好在后面唤醒我.
 			//这里不需要判断是否修改成功, 因为外部是循环, 所以等待下一次进入此方法就行了, 返回false, 继续重试.
 			//设置完成后, 外层会继续尝试一次tryAcquire
+			//从这里可以看出SIGNAL和PROPAGATE和0的区别在于, 状态为SIG后, 就park, 而0和-3需要再试一次
 			compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
 		}
 		return false;
@@ -356,8 +361,9 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			for (;;) {
 				final Node p = node.predecessor();
 				if (p == head) {
+					//r为正:表示共享申请成功, 且还有余量, 后面的可以继续申请, 0:表示共享申请成功, 但是没有余量, 后续申请要阻塞等待, r为负:表示共享申请失败
 					int r = tryAcquireShared(arg);
-					if (r >= 0) {//Acquire成功
+					if (r >= 0) {
 						//设置node为head, 并增殖
 						setHeadAndPropagate(node, r);
 						p.next = null;
@@ -470,11 +476,11 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			Node h = head;
 
 			//当没有竞争时, head是为空的, 当有竞争时, head被后面来的线程创建, 并加入队列,
-			//然后在shouldParkAfterFailedAcquire()中修改状态(0 -> -1).
+			//然后后续节点在park前修改状态, 在shouldParkAfterFailedAcquire()中修改状态(0 -> -1).
 			//所以这里, head会空的话, 不用unpark继任.
+			//所以这里, head状态为0, 表示继任节点还未park, 不用unpark继任.
 
-			//head不为空时, 状态不为0, 表示:
-
+			//head不可能为cancel, 所以这里等价于h.waitStatus < 0
 			if (h != null && h.waitStatus != 0) {
 				unparkSuccessor(h);
 			}
@@ -588,8 +594,7 @@ public class MyAqs extends AbstractOwnableSynchronizer {
 			}
 		}
 
-		Node() {
-		}
+		Node() {}
 
 		Node(Thread thread, Node mode) {
 			this.nextWaiter = mode;
