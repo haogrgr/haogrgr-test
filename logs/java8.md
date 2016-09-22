@@ -240,6 +240,39 @@ for (int i = 0; i < 2; i++) {
 
 
 [slide]
+# Lambda表达式-实现5
+----
+```java
+  public static void main(java.lang.String[] args) throws java.lang.Exception;
+     0  invokedynamic 0 apply() : java.util.function.Function [22]
+     5  astore_1 [func]
+     6  aload_1 [func]
+     7  bipush 10
+     9  invokestatic java.lang.Integer.valueOf(int) : java.lang.Integer [23]
+    12  invokeinterface java.util.function.Function.apply(java.lang.Object) : java.lang.Object [29] [nargs: 2]
+    17  pop
+    18  return
+```
+```java
+Bootstrap methods:
+  0 : # 58 invokestatic LambdaMetafactory.metafactory:
+			(
+			Ljava/lang/invoke/MethodHandles$Lookup;  //JVM填充, 用来获取lambda$0的方法引用
+			Ljava/lang/String;                       //JVM填充, Function.apply方法名, 用于动态生成字节码时的方法名
+			Ljava/lang/invoke/MethodType;            //JVM填充, 这里为 (String)Function, 用于字节码生成
+			Ljava/lang/invoke/MethodType;            //Class文件, 值为(Object)Object, apply方法的类型, 要实现的接口方法类型
+			Ljava/lang/invoke/MethodHandle;          //Class文件, 为lambda$0的方法引用, 用于字节码生成
+			Ljava/lang/invoke/MethodType;            //Class文件, 为(Integer)Integer, 表示真实的类型信息, 泛型擦除, 所以
+			)
+			Ljava/lang/invoke/CallSite;
+	Method arguments:
+		#59 (Ljava/lang/Object;)Ljava/lang/Object;
+		#62 invokestatic com/haogrgr/test/main/Temp.lambda$0:(Ljava/lang/Integer;)Ljava/lang/Integer;
+		#63 (Ljava/lang/Integer;)Ljava/lang/Integer;
+```
+
+
+[slide]
 # Lambda表达式-相关概念
 ----
 * 调用点(CallSite)(JDK7) : 在这个点, 调什么方法
