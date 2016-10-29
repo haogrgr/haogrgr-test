@@ -7,6 +7,7 @@ import java.util.Map;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.MoreObjects;
@@ -23,6 +24,10 @@ import com.haogrgr.test.model.TestModel;
 public class JsonUtils {
 
 	private static ObjectMapper mapper = new ObjectMapper();
+	
+	static {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
 
 	public static void main(String[] args) throws JsonParseException, JsonMappingException, IOException {
 		String json = toJson(Maps.of("1", "11", "2", "22"));
