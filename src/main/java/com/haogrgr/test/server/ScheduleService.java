@@ -3,9 +3,9 @@ package com.haogrgr.test.server;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+//import org.springframework.stereotype.Service;
 
-@Service
+//@Service
 public class ScheduleService {
 
 	private AtomicInteger inc = new AtomicInteger();
