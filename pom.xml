@@ -212,6 +212,13 @@
 			<version>1</version>
 		</dependency>
 
+		<!-- @NotNull -->
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>3.0.1</version>
+		</dependency>
+
 		<!-- bean validation api -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -718,6 +725,13 @@
 			<artifactId>ecj</artifactId>
 			<version>4.6.1</version>
 		</dependency>
+		
+<!-- 		<dependency> -->
+<!--     <groupId>org.eclipse.jdt</groupId> -->
+<!--     <artifactId>org.eclipse.jdt.core</artifactId> -->
+<!--     <version>3.12.2</version> -->
+<!-- </dependency> -->
+
 
 	</dependencies>
 
