@@ -298,7 +298,7 @@
 			<artifactId>quartz</artifactId>
 			<version>2.2.3</version>
 		</dependency>
-
+		
 		<!-- apache common -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -367,6 +367,12 @@
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
 			<version>2.9.0</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.4</version>
 		</dependency>
 
 		<!-- redisson
