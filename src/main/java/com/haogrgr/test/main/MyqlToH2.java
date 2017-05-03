@@ -10,7 +10,7 @@ import com.google.common.io.Files;
 public class MyqlToH2 {
 
 	public static void main(String[] args) throws Exception {
-		File file = new File("C:\\\\db\\schema.sql");
+		File file = new File("/Users/tudesheng/projects/haogrgr/haogrgr-test/src/test/resources/sql/test_schema2.sql");
 		String content = Files.toString(file, Charsets.UTF_8);
 
 		//设置模式为mysql
@@ -26,7 +26,14 @@ public class MyqlToH2 {
 		content = content.replaceAll("COMMENT.*'(?=,)", "");
 
 		//) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin; 这一行也替换掉, ENGINE语法不支持
-		content = content.replaceAll("\\).*ENGINE.*(?=;)", ")");
+		content = content.replaceAll("\\).*ENGINE=InnoDB.*", ");");
+		//content = content.replaceAll("\\).*ENGINE.*(?=;)", ")");
+		
+		//double(22,2)  不支持
+		content = content.replaceAll("double\\(.*?\\)", "double");
+		
+		//KEY idx_cndcp_lg_scheme_cw126126 (channel_key,wh_res_code(255)) 不支持，鬼知道是什么语法, 去掉(255)
+		content = content.replaceAll("(KEY .*?\\(.*?)\\(\\d+\\)(.*)", "$1$2");
 
 		//时戳更新不支持, 修改为H2 AS CURRENT_TIMESTAMP语法
 		content = content.replaceAll("DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP", " AS CURRENT_TIMESTAMP");
