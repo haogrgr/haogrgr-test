@@ -368,7 +368,7 @@
 			<artifactId>jedis</artifactId>
 			<version>2.9.0</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
@@ -731,13 +731,12 @@
 			<artifactId>ecj</artifactId>
 			<version>4.6.1</version>
 		</dependency>
-		
-<!-- 		<dependency> -->
-<!--     <groupId>org.eclipse.jdt</groupId> -->
-<!--     <artifactId>org.eclipse.jdt.core</artifactId> -->
-<!--     <version>3.12.2</version> -->
-<!-- </dependency> -->
 
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>59.1</version>
+		</dependency>
 
 	</dependencies>
 

@@ -87,6 +87,18 @@ public class JsonUtils {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	/**
+     * json转换为map, 不带泛型信息
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> toMapn(String json) {
+        try {
+            return mapper.readValue(json, Map.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	/**
 	 * json转换为list

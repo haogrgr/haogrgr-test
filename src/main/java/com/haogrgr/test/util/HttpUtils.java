@@ -53,9 +53,9 @@ public class HttpUtils {
     public static final String USER_AGENT = USER_AGENT_CHROME;
 
 	//request config
-	public static final Integer DEFAULT_CONN_TIMEOUT = 3000;//与主机建立链接的超时时间(毫秒)
-	public static final Integer DEFAULT_SO_TIMEOUT = 5000;//建立链接后,传输等待超时时间(毫秒)
-	public static final Integer DEFAULT_CONN_REQ_TIMEOUT = 3000;//向链接池请求链接超时时间(毫秒)
+	public static final Integer DEFAULT_CONN_TIMEOUT = 5000;//与主机建立链接的超时时间(毫秒)
+	public static final Integer DEFAULT_SO_TIMEOUT = 15000;//建立链接后,传输等待超时时间(毫秒)
+	public static final Integer DEFAULT_CONN_REQ_TIMEOUT = 5000;//向链接池请求链接超时时间(毫秒)
 
 	//pooling connect manager config
 	public static final Integer DEFAULT_CONN_POOL_SIZE = 200;//链接池大小
