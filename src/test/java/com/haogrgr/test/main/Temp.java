@@ -1,27 +1,25 @@
 package com.haogrgr.test.main;
 
-import java.util.ArrayList;
-
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import com.haogrgr.test.dao.TestMapper;
-import com.haogrgr.test.model.TestModel;
-import com.haogrgr.test.util.Lists;
+import java.util.HashMap;
 
 public class Temp {
 
-	public static void main(String[] args) throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring-root.xml");
-		TestMapper bean = context.getBean(TestMapper.class);
-
-		ArrayList<TestModel> array = Lists.array(new TestModel().setName("hehe"), new TestModel().setName("hehe"));
-		bean.saveBatch(array);
-
-		for (TestModel testModel : array) {
-			System.out.println(testModel.getId());
-		}
-
-		context.close();
-	}
+    public static void main(String[] args) throws Exception {
+        HashMap<Long, Integer> mapa = new HashMap<>();
+        HashMap<Long, Integer> mapb = new HashMap<>();
+        
+        mapa.put(new Long(1L), new Integer(1));
+        mapb.put(new Long(1L), new Integer(1));
+        
+        mapa.put(new Long(2L), new Integer(1));
+        mapb.put(new Long(2L), new Integer(1));
+        
+        mapa.put(new Long(3L), new Integer(1));
+        mapb.put(new Long(3L), new Integer(1));
+        
+        //mapa.put(new Long(1L), new Integer(1));
+        
+        System.out.println(Boolean.FALSE.equals(null));
+    }
 
 }
